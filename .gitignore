@@ -29,3 +29,6 @@ staticfiles/
 # OS
 Thumbs.db
 .DS_Store
+
+# Executables
+ngrok.exe
