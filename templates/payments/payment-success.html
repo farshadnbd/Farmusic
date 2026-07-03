@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}
+پرداخت موفق
+{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <div class="card bg-dark border-success text-center">
+
+        <div class="card-body p-5">
+
+            <h2 class="text-success mb-4">
+                ✅ پرداخت با موفقیت انجام شد
+            </h2>
+
+            <p>
+                اشتراک شما فعال شد.
+            </p>
+
+            <p>
+                کد رهگیری:
+                <strong>
+                    {{ payment.ref_id }}
+                </strong>
+            </p>
+
+            <a href="{% url 'profile' %}" class="btn btn-success mt-3">
+                مشاهده پروفایل
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

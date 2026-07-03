@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="card music-card p-4">
+
+    <h4 class="mb-3">
+        گزارش دیدگاه
+    </h4>
+
+    <form method="post">
+
+        {% csrf_token %}
+
+        <textarea name="reason" class="form-control mb-3" rows="4" placeholder="دلیل گزارش را بنویسید..." required></textarea>
+
+        <button type="submit" class="btn btn-danger">
+            ارسال گزارش
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}

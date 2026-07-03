@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    ایجاد پلی‌لیست
+{% endblock %}
+
+{% block content %}
+
+    <div class="container">
+
+        <div class="row justify-content-center">
+
+            <div class="col-md-6">
+
+                <div class="card music-card">
+
+                    <div class="card-body">
+
+                        <h3 class="mb-4">
+                            🎵 ویرایش نام
+                        </h3>
+
+                        <form method="post">
+
+                            {% csrf_token %}
+
+                            <input type="text" name="title" class="form-control mb-3" placeholder="نام پلی‌لیست">
+
+                            <button type="submit" class="btn btn-warning">
+                                ویرایش
+                            </button>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

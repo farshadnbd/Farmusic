@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    درباره ما | FarMusic
+{% endblock %}
+
+{% block extra_head %}
+    <meta name="description"
+          content="درباره FarMusic، وب‌سایت دانلود موسیقی، پخش آنلاین آهنگ، آلبوم و معرفی هنرمندان">
+
+    <meta property="og:title"
+          content="درباره ما | FarMusic">
+
+    <meta property="og:description"
+          content="آشنایی با FarMusic و خدمات دانلود و پخش آنلاین موسیقی">
+
+    <meta property="og:type"
+          content="website">
+
+    <meta property="og:url"
+          content="{{ request.build_absolute_uri }}">
+
+    <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "AboutPage",
+          "name": "درباره FarMusic",
+          "description": "FarMusic یک وب‌سایت دانلود موسیقی، پخش آنلاین آهنگ و معرفی هنرمندان است.",
+          "url": "{{ request.build_absolute_uri }}"
+        }
+    </script>
+{% endblock %}
+
+{% block content %}
+    <h1>درباره FarMusic</h1>
+
+    <p>
+        FarMusic یک وب‌سایت دانلود موسیقی است که با Django توسعه داده شده است.
+    </p>
+
+    <p>
+        هدف FarMusic ارائه مجموعه‌ای از آهنگ‌ها، آلبوم‌ها، هنرمندان و ژانرهای موسیقی با رابط کاربری ساده،
+        سرعت مناسب و تجربه کاربری خوب برای علاقه‌مندان به موسیقی است.
+    </p>
+{% endblock %}

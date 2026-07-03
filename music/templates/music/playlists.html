@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    پلی‌لیست‌های من
+{% endblock %}
+
+{% block content %}
+
+    <div class="container">
+
+        <h2 class="mb-4">
+
+            🎵 پلی‌لیست‌های من
+
+        </h2>
+
+        <a href="{% url 'create_playlist' %}"
+           class="btn btn-warning mb-4">
+
+            + ساخت پلی‌لیست
+
+        </a>
+
+        <div class="row">
+
+            {% for playlist in playlists %}
+
+                <div class="col-md-4 mb-4">
+
+                    <div class="card music-card h-100">
+
+                        <div class="card-body">
+
+                            <a href="{% url 'playlist_detail' playlist.id %}"
+                               class="text-decoration-none text-white">
+
+                                <h5>
+                                    {{ playlist.title }}
+                                </h5>
+
+                            </a>
+
+                            <small class="text-secondary">
+
+                                {{ playlist.musics.count }}
+                                آهنگ
+
+                            </small>
+                            <form method="post"
+                                  action="{% url 'delete_playlist' playlist.id %}">
+
+                                {% csrf_token %}
+
+                                <button class="btn btn-danger">
+
+                                    🗑 حذف پلی‌لیست
+
+                                </button>
+
+                                <a href="{% url 'edit_playlist' playlist.id  %}"
+   class="btn btn-warning btn-sm">
+
+    ✏ ویرایش
+
+</a>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            {% empty %}
+
+                <div class="alert alert-secondary">
+
+                    هنوز پلی‌لیستی نساخته‌اید.
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+{% endblock %}

@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load thumbnail %}
+{% block title %}
+    محبوب‌ترین آهنگ‌ها
+{% endblock %}
+
+{% block canonical %}
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
+{% endblock %}
+
+{% block extra_head %}
+    <meta name="description"
+          content="محبوب‌ترین آهنگ‌های FarMusic را همراه با پخش آنلاین، دانلود مستقیم و اطلاعات کامل مشاهده کنید.">
+
+    <meta property="og:title" content="محبوب‌ترین آهنگ‌ها | FarMusic">
+    <meta property="og:description"
+          content="فهرست محبوب‌ترین آهنگ‌ها در FarMusic همراه با دانلود و پخش آنلاین.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+
+    <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          "name": "محبوب‌ترین آهنگ‌ها",
+          "description": "فهرست محبوب‌ترین آهنگ‌های FarMusic",
+          "url": "{{ request.build_absolute_uri }}"
+    }
+    </script>
+{% endblock %}
+
+{% block content %}
+    <h2 class="mb-4">🔥 محبوب‌ترین آهنگ‌ها</h2>
+
+    <!-- 🟢 اضافه شدن دکمه‌های فیلتر بر اساس دانلود، ویو و لایک -->
+    <div class="d-flex gap-2 mb-4">
+        <a href="?sort=download"
+           class="btn {% if current_sort == 'download' or not current_sort %}btn-warning{% else %}btn-outline-light{% endif %}">
+            ⬇️ بر اساس دانلود
+        </a>
+        <a href="?sort=view"
+           class="btn {% if current_sort == 'view' %}btn-warning{% else %}btn-outline-light{% endif %}">
+            👁️ بر اساس بازدید
+        </a>
+        <a href="?sort=like"
+           class="btn {% if current_sort == 'like' %}btn-warning{% else %}btn-outline-light{% endif %}">
+            ❤️ بر اساس لایک
+        </a>
+    </div>
+
+    <div class="row mobile-slider">
+        {% for music in page_obj %}
+            <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-4">
+                <div class="card h-100 shadow-sm music-card">
+                    <a href="{% url 'music_detail' music.id music.slug_en %}">
+                        {% if music.cover %}
+                            <img src="{% thumbnail music.cover 'music_card' %}"
+                                 class="img-fluid music-cover-detail rounded-4 shadow-lg"
+                                 alt="{{ music.title }} - {{ music.artist.name }}"
+                                 loading="lazy">
+                        {% else %}
+                            <img src="{% static 'images/default-cover.jpg' %}"
+                                 class="img-fluid music-cover-detail rounded-4 shadow-lg"
+                                 alt="{{ music.title }} - {{ music.artist.name }}"
+                                 loading="lazy">
+                        {% endif %}
+                    </a>
+                   <button class="play-btn-card"
+                                data-audio-url="{% url 'download_music' music.id %}"
+                                data-title="{{ music.title }}"
+                                data-artist="{{ music.artist.name }}"
+                                data-is-vip="{{ music.is_vip|yesno:'true,false' }}"
+                                data-cover-url="{% if music.cover %}{{ music.cover.url }}{% endif %}">
+                            ▶
+                        </button>
+                    <div class="card-body">
+                        <h5 class="card-title music-title">
+                            <a href="{% url 'music_detail' music.id music.slug_en %}" class="text-decoration-none">
+                                {{ music.title }}
+                            </a>
+                        </h5>
+                        <p class="text-secondary mb-2">
+                            {% if music.artists.exists %}
+                                {% for art in music.artists.all %}
+                                    <a href="{% url 'artist_detail' art.id art.slug_en|default:'artist' %}"
+                                       class="artist-link text-decoration-none">
+                                        {{ art.name }}
+                                    </a>
+                                    {% if not forloop.last %}<span>&</span>{% endif %}
+                                {% endfor %}
+                                <span class="small">🎤</span>
+                            {% elif music.artist %}
+                                <a href="{% url 'artist_detail' music.artist.id music.artist.slug_en|default:'artist' %}"
+                                   class="artist-link text-decoration-none">
+                                    {{ music.artist.name }} 🎤
+                                </a>
+                            {% else %}
+                                <span class="text-muted">ناشناس</span>
+                            {% endif %}
+                        </p>
+                        <p class="text-secondary mb-2">
+                            <a class="artist-link" href="{% url 'genre_musics' music.genre.id music.genre.slug_en %}">
+                                {{ music.genre }}
+                            </a>
+                        </p>
+                        <div>
+                            ❤️ {{ music.likes_count }}
+                            💬 {{ music.comments_count }}
+                            ⬇ {{ music.download_count }}
+                            👁 {{ music.views_count }}
+                        </div>
+                        {% if music.is_vip %}
+                            <span class="badge bg-warning">VIP</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <nav>
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page=1">اول</a></li>
+                        <li class="page-item"><a class="page-link"
+                                                 href="?page={{ page_obj.previous_page_number }}">قبلی</a></li>
+                    {% endif %}
+                    <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+                    {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">بعدی</a>
+                        </li>
+                        <li class="page-item"><a class="page-link"
+                                                 href="?page={{ page_obj.paginator.num_pages }}">آخر</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}
+پرداخت ناموفق
+{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <div class="card bg-dark border-danger text-center">
+
+        <div class="card-body p-5">
+
+            <h2 class="text-danger mb-4">
+                ❌ پرداخت ناموفق بود
+            </h2>
+
+            <p>
+                تراکنش تکمیل نشد.
+            </p>
+
+            <a href="{% url 'subscriptions' %}" class="btn btn-danger mt-3">
+                بازگشت
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

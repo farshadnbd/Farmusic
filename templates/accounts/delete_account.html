@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="card music-card p-4">
+
+        <h3 class="text-danger mb-3">
+            حذف حساب کاربری
+        </h3>
+
+        <p>
+            با حذف حساب کاربری تمام اطلاعات شما حذف خواهد شد.
+        </p>
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            <button type="submit"
+                    class="btn btn-danger">
+                حذف حساب
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

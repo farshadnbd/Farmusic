@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+{% load static %}
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta name="robots" content="index,follow">
+
+    <title>{% block title %}FarMusic{% endblock %}</title>
+
+    <meta name="description"
+          content="{% block meta_description %}دانلود آهنگ، آلبوم و پخش آنلاین موسیقی در FarMusic{% endblock %}">
+
+    {% block canonical %}
+        <link rel="canonical" href="{{ request.build_absolute_uri }}">
+    {% endblock %}
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="FarMusic">
+    <meta property="og:title" content="{% block og_title %}{% block title_og %}FarMusic{% endblock %}{% endblock %}">
+    <meta property="og:description" content="دانلود آهنگ، آلبوم و پخش آنلاین موسیقی در FarMusic">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+
+    {% block extra_head %}{% endblock %}
+
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'music/css/style.css' %}">
+
+</head>
+<body class="bg-dark text-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/">FarMusic</a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mainNavbar">
+            <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+                <li class="nav-item"><a class="nav-link" href="/">خانه</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'popular_musics' %}">محبوب‌ترین آهنگ‌ها🔥</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'artists_list' %}">خوانندگان</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">ژانرها</a>
+                    <ul class="dropdown-menu">
+                        {% for genre in genres %}
+                            <li>
+                                {% if genre.slug_en %}
+                                    <a class="dropdown-item"
+                                       href="{% url 'genre_musics' genre.id genre.slug_en %}">{{ genre.name }}</a>
+                                {% else %}
+                                    <a class="dropdown-item"
+                                       href="{% url 'genre_musics' genre.id 'genre' %}">{{ genre.name }}</a>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'about' %}">درباره ما</a></li>
+                <li class="nav-item">
+                    {% if user.is_authenticated %}
+                        <!-- اگر کاربر وارد شده باشد، به صفحه پروفایل خودش می‌رود -->
+                        <a class="nav-link" href="{% url 'profile' %}">پروفایل من</a>
+                    {% else %}
+                        <!-- اگر وارد نشده باشد، به صفحه ورود هدایت می‌شود و بعد از ورود دوباره به همین صفحه برمی‌گردد -->
+                        <a class="nav-link" href="{% url 'login' %}?next={{ request.path }}">پروفایل من</a>
+                    {% endif %}
+                </li>
+            </ul>
+
+            <div class="d-flex align-items-center gap-3">
+                <form class="d-flex gap-2 mb-0" method="get" action="{% url 'search_music' %}">
+                    <div class="position-relative">
+                        <input id="searchInput" class="form-control" type="search" name="q" placeholder="جستجو ..."
+                               autocomplete="off">
+                        <div id="suggestions"></div>
+                    </div>
+                    <button class="btn btn-outline-light" type="submit">جستجو</button>
+                </form>
+
+                <div class="d-flex align-items-center gap-2">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'profile' %}"
+                           class="text-white text-decoration-none d-flex align-items-center gap-2 position-relative">
+                            <img alt="{{ user.username }}" src="
+
+
+
+
+
+
+                                    {% if user.profile.avatar %}{{ user.profile.avatar.url }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}"
+                                 class="nav-avatar">
+
+                            {% if unread_notifications > 0 %}
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                      style="font-size: 0.7rem; padding: 0.35em 0.5em; z-index: 10;">
+                                    {{ unread_notifications }}
+                                </span>
+                            {% endif %}
+
+                            <span class="d-none d-xl-inline">{{ user.username }}</span>
+                        </a>
+                        <a href="{% url 'logout' %}" class="btn btn-danger btn-sm">خروج</a>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-success btn-sm">ورود</a>
+                        <a href="{% url 'register' %}" class="btn btn-warning btn-sm">ثبت نام</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    {% block content %}
+    {% endblock %}
+</div>
+
+<footer class="main-footer bg-dark text-white pt-5 pb-4 border-top border-secondary border-opacity-25" dir="rtl">
+    <div class="container">
+        <div class="row g-4 text-end">
+
+            <!-- بخش توضیحات سایت -->
+            <div class="col-lg-5 col-md-6">
+                <h5 class="fw-bold text-warning mb-3 fs-4">FarMusic</h5>
+                <p class="text-white small lh-lg opacity-90">
+                    فارموزیک یک پلتفرم پیشرفته برای مدیریت، پخش آنلاین و دانلود آثار موسیقی است. ما تلاش می‌کنیم تا
+                    بهترین کیفیت و سریع‌ترین دسترسی را برای علاقه‌مندان به دنیای موسیقی فراهم کنیم.
+                </p>
+            </div>
+
+            <!-- بخش دسترسی سریع -->
+            <div class="col-lg-3 col-md-6">
+                <h5 class="fw-bold text-light mb-3">دسترسی سریع</h5>
+                <ul class="list-unstyled footer-links p-0">
+                    <li class="mb-2"><a href="/"
+                                        class="text-white text-decoration-none small transition-all d-block py-1 opacity-90">🏠
+                        صفحه اصلی</a></li>
+                    <li class="mb-2"><a href="{% url 'popular_musics' %}"
+                                        class="text-white text-decoration-none small transition-all d-block py-1 opacity-90">🔥
+                        محبوب‌ترین‌ها</a></li>
+                    <li class="mb-2"><a href="{% url 'artists_list' %}"
+                                        class="text-white text-decoration-none small transition-all d-block py-1 opacity-90">🎤
+                        هنرمندان</a></li>
+                    <li class="mb-2"><a href="{% url 'buy_subscription' %}"
+                                        class="text-white text-decoration-none small transition-all d-block py-1 opacity-90">👑
+                        اشتراک VIP</a></li>
+                </ul>
+            </div>
+
+            <!-- بخش ارتباط با ما (تلگرام به این بخش منتقل شد) -->
+            <div class="col-lg-4 col-md-6">
+                <h5 class="fw-bold text-light mb-3">ارتباط با ما</h5>
+                <ul class="list-unstyled text-white small p-0 lh-lg opacity-90">
+                    <li class="mb-3 d-flex align-items-center gap-2">
+                        <span class="fs-5">✉️</span> <span class="text-warning">ایمیل:</span> farmusicbackups@gmail.com
+                    </li>
+                    <li class="mb-2 d-flex align-items-center gap-2">
+                        <!-- آیکون تلگرام -->
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16.64 8.8C16.49 10.38 15.83 14.31 15.5 16.12C15.36 16.88 15.08 17.14 14.81 17.16C14.22 17.22 13.77 16.78 13.2 16.41C12.31 15.82 11.81 15.45 10.95 14.88C9.95 14.23 10.6 13.87 11.17 13.28C11.32 13.13 13.92 10.77 13.97 10.56C13.98 10.53 13.99 10.43 13.93 10.38C13.87 10.33 13.78 10.35 13.72 10.36C13.63 10.38 12.24 11.3 9.54 13.12C9.15 13.39 8.79 13.52 8.47 13.51C8.11 13.5 7.42 13.31 6.91 13.14C6.28 12.94 5.78 12.83 5.82 12.48C5.84 12.3 6.09 12.11 6.57 11.92C9.55 10.62 11.54 9.77 12.55 9.35C15.42 8.16 16.02 7.95 16.41 7.96C16.5 7.96 16.7 7.98 16.82 8.08C16.92 8.16 16.95 8.28 16.96 8.37C16.95 8.43 16.66 8.64 16.64 8.8Z" fill="#24A1DE"></path>
+                        </svg>
+                        <span class="text-warning">کانال تلگرام:</span>
+                        <a href="https://t.me/farmusicchannel" class="text-white text-decoration-none border-bottom border-secondary" target="_blank">farmusicchannel@</a>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+
+        <hr class="border-secondary border-opacity-25 my-4">
+
+       <div class="text-center mt-3">
+    <p class="mb-0 text-white-50 small" style="font-size: 0.8rem;">
+        © ۲۰۲۶ FarMusic | تمامی حقوق محفوظ است.
+    </p>
+</div>
+    </div>
+</footer>
+
+<div id="globalPlayerContainer"
+     style="position: fixed; bottom: 25px; left: 25px; max-width: 460px; width: calc(100% - 50px); z-index: 1050; display: none; direction: ltr;">
+
+    <button id="closePlayerBtn" class="close-player-btn" title="بستن پلیر"
+            style="position: absolute; top: -10px; left: 10px; width: 24px; height: 24px; background: #222; border: 1px solid #ffc107; border-radius: 50%; color: #fff; font-size: 16px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1060; line-height: 1; padding: 0;">
+        &times;
+    </button>
+
+    <div class="p-3 rounded-4 shadow-lg" style="background: #1e1e1e; border: 1px solid #2a2a2a;">
+
+        <div class="d-flex align-items-center justify-content-between mb-2" style="direction: rtl;">
+            <div class="d-flex align-items-center gap-2">
+                <img id="playerTrackCover" src="{% static 'images/default-cover.jpg' %}"
+                     class="rounded-3 shadow-sm border border-secondary"
+                     style="width: 45px; height: 45px; object-fit: cover;" alt="کاور">
+                <div>
+                    <h6 id="playerTrackTitle" class="m-0 text-white fw-bold" style="font-size: 0.9rem;">عنوان آهنگ</h6>
+                    <small id="playerTrackArtist" class="text-warning small" style="font-size: 0.78rem;">نام
+                        خواننده</small>
+                </div>
+            </div>
+            <div style="padding-left: 20px;"><span style="font-size: 0.75rem;">FarMusic 🎵</span>
+            </div>
+        </div>
+
+        <audio id="mainAudioElement" controls>
+            <source src="" type="audio/mp3">
+        </audio>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+<script>
+    const input = document.getElementById('searchInput');
+    const suggestions = document.getElementById('suggestions');
+
+    let debounceTimer = null;
+
+    async function fetchSuggestions(query) {
+        try {
+            const response = await fetch(`/search-suggestions/?q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+
+            suggestions.innerHTML = '';
+
+            data.forEach(item => {
+                if (item.type === 'artist') {
+                    suggestions.innerHTML += `
+                        <a href="/artist/${item.id}/${item.slug}/" class="suggestion-item">
+                            🎤 ${item.name}
+                        </a>
+                    `;
+                } else if (item.type === 'genre') {
+                    suggestions.innerHTML += `
+                        <a href="/genre/${item.id}/${item.slug}/" class="suggestion-item">
+                            🏷 ${item.name}
+                        </a>
+                    `;
+                } else if (item.type === 'album') {
+                    suggestions.innerHTML += `
+                        <a href="/album/${item.id}/${item.slug}/" class="suggestion-item">
+                            <div>💿 ${item.title}</div>
+                            ${item.artist ? `<small class="text-secondary">${item.artist}</small>` : ''}
+                        </a>
+                    `;
+                } else if (item.type === 'music') {
+                    suggestions.innerHTML += `
+                        <a href="/music/${item.id}/${item.slug}/" class="suggestion-item">
+                            <div>🎵 ${item.title}</div>
+                            <small class="text-secondary">${item.artist}</small>
+                        </a>
+                    `;
+                }
+            });
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    if (input) {
+        input.addEventListener('input', () => {
+            const q = input.value.trim();
+
+            if (q.length < 2) {
+                suggestions.innerHTML = '';
+                return;
+            }
+
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                fetchSuggestions(q);
+            }, 300);
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!input.contains(e.target) && !suggestions.contains(e.target)) {
+                suggestions.innerHTML = '';
+            }
+        });
+
+        input.addEventListener('focus', () => {
+            const q = input.value.trim();
+            if (q.length > 0) {
+                fetchSuggestions(q);
+            }
+        });
+    }
+
+    let globalPlyr = null;
+
+    document.addEventListener('DOMContentLoaded', function () {
+
+        const audioPlayerContainer = document.getElementById('globalPlayerContainer');
+        const audioElement = document.getElementById('mainAudioElement');
+        const playerTitle = document.getElementById('playerTrackTitle');
+        const playerArtist = document.getElementById('playerTrackArtist');
+        const playerCover = document.getElementById('playerTrackCover');
+        const closePlayerBtn = document.getElementById('closePlayerBtn');
+
+        // وضعیت کاربر
+        const isAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
+        const hasVip = {{ user_has_vip|yesno:"true,false" }};
+        // راه‌اندازی Plyr
+        if (audioElement) {
+            globalPlyr = new Plyr('#mainAudioElement', {
+                controls: ['play', 'progress', 'current-time', 'duration', 'volume'],
+                seekTime: 10
+            });
+        }
+
+        // بستن پلیر
+        if (closePlayerBtn) {
+            closePlayerBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                if (globalPlyr) {
+                    globalPlyr.pause();
+                    globalPlyr.currentTime = 0;
+                } else if (audioElement) {
+                    audioElement.pause();
+                    audioElement.currentTime = 0;
+                }
+
+                audioPlayerContainer.style.display = 'none';
+            });
+        }
+
+        // کلیک روی دکمه پلی
+        document.body.addEventListener('click', function (e) {
+
+            const playBtn = e.target.closest('.play-btn-card');
+            if (!playBtn) return;
+
+            e.preventDefault();
+
+            const isVip = playBtn.dataset.isVip === "true";
+            const audioUrl = playBtn.dataset.audioUrl;
+            const title = playBtn.dataset.title;
+            const artist = playBtn.dataset.artist;
+            const coverUrl = playBtn.dataset.coverUrl;
+
+            if (!audioUrl) {
+                alert("فایل صوتی پیدا نشد.");
+                return;
+            }
+
+            // بررسی VIP
+            if (isVip) {
+
+                if (!isAuthenticated) {
+                    alert("برای پخش این آهنگ ابتدا وارد حساب کاربری شوید.");
+                    window.location.href = "{% url 'login' %}";
+                    return;
+                }
+
+                if (!hasVip) {
+                    alert("این آهنگ فقط برای کاربران VIP قابل پخش است.");
+                    window.location.href = "{% url 'buy_subscription' %}";
+                    return;
+                }
+            }
+
+            // اطلاعات پلیر
+            playerTitle.textContent = title;
+            playerArtist.textContent = artist;
+
+            if (coverUrl && coverUrl !== "None") {
+                playerCover.src = coverUrl;
+            } else {
+                playerCover.src = "{% static 'images/default-cover.jpg' %}";
+            }
+
+            audioPlayerContainer.style.display = "block";
+
+            audioElement.src = audioUrl;
+            audioElement.load();
+
+            globalPlyr.source = {
+                type: "audio",
+                title: title,
+                sources: [{
+                    src: audioUrl,
+                    type: "audio/mp3"
+                }]
+            };
+
+            globalPlyr.restart();
+
+            setTimeout(() => {
+                globalPlyr.play().catch(() => {
+                });
+            }, 150);
+
+        });
+
+    });
+</script>
+</body>
+</html>

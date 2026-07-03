@@ -1,0 +1,1385 @@
+/* ─── اصلاح دگرگون‌سازی عنوان برای نمایش ۲ خطی و همترازی کارت‌ها ─── */
+.music-title {
+    font-size: 0.9rem !important;
+    margin-bottom: 5px;
+
+    /* حذف قانون تک‌خطی اجباری قبلی */
+    white-space: normal !important;
+
+    /* جادوی نمایش تایتل‌های طولانی تا ۲ خط */
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* حداکثر متن را در ۲ خط می‌شکند */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis; /* در صورت عبور از خط دوم، سه نقطه قرار می‌گیرد */
+
+    /* ترفند جادویی: دادن ارتفاع ثابت دقیق برای فیکس ماندن ابعاد تمام کارت‌ها */
+    height: 2.6rem;
+    line-height: 1.3rem;
+}
+
+/* تنظیم دقیق لینک داخلی تایتل */
+.music-title a {
+    color: #fff;
+    font-size: 1.01rem; /* سایز بهینه‌شده برای چیدمان عمودی */
+    font-weight: 600;
+    transition: 0.2s;
+    display: block;
+}
+
+.music-title a:hover {
+    color: #ffc107;
+}
+
+body {
+    font-family: 'Vazirmatn', sans-serif;
+}
+
+.hero-section {
+    background: #1e1e1e;
+    border-radius: 20px;
+    padding: 60px 20px;
+    margin-bottom: 40px;
+}
+
+/* ─── اصلاح و یکپارچه‌سازی کارت‌های موزیک صفحه اصلی ─── */
+.music-card {
+    background: #1a1a1a !important; /* رنگ پس‌زمینه تیره و مدرن */
+    border: 1px solid #2a2a2a !important;
+    border-radius: 12px !important;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.music-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.6);
+    border-color: #ffc107 !important; /* خط دور طلایی هنگام هاور */
+}
+
+/* نگه‌دارنده کاور کارت */
+.music-cover-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1; /* ایجاد کادر دقیقاً مربعی */
+    background-color: #0f0f0f;
+    overflow: hidden;
+    border-radius: 12px 12px 0 0;
+}
+
+.music-main-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* جمع شدن کامل عکس بدون برش خوردگی */
+    padding: 5px; /* ایجاد یک فاصله ظریف و شیک عکس از لبه‌ها */
+    transition: transform 0.3s ease;
+}
+
+.music-card:hover .music-main-img {
+    transform: scale(1.04); /* زوم ملایم روی عکس هنگام هاور */
+}
+
+/* ─── لایه کنترل و دکمه‌های روی کاور آهنگ ─── */
+.music-card-overlay-actions {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.2); /* سایه بسیار ملایم سراسری روی عکس */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+}
+
+/* استایل عمومی دکمه‌های اکشن روی کاور */
+.btn-card-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease, opacity 0.25s ease, visibility 0.25s ease, bottom 0.25s ease;
+}
+
+/* دکمه پلی اصلی (همیشه ثابت و نمایان در وسط کاور) */
+.main-play-btn {
+    width: 46px;
+    height: 46px;
+    background-color: #ffc107;
+    color: #0d0d0e;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    position: absolute;
+}
+
+.main-play-btn:hover {
+    transform: scale(1.12);
+    background-color: #ffe082;
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.5);
+}
+
+/* دکمه لایک سریع (در حالت عادی کاملاً مخفی و در موقعیت پایین‌تر) */
+.quick-like-btn {
+    width: 34px;
+    height: 34px;
+    background-color: rgba(26, 26, 26, 0.85);
+    color: #ffffff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    position: absolute;
+    right: 10px;
+    bottom: -5px; /* شروع موقعیت کمی پایین‌تر برای افکت ورود از پایین */
+    opacity: 0;
+    visibility: hidden;
+    z-index: 6;
+}
+
+.quick-like-btn:hover {
+    transform: scale(1.1);
+    color: #ffc107;
+    background-color: #111111;
+}
+
+/* ظاهر شدن و انیمیشن ورود دکمه لایک هنگام هاور روی کارت */
+.music-card:hover .quick-like-btn {
+    opacity: 1;
+    visibility: visible;
+    bottom: 10px; /* هدایت دکمه لایک به سر جای اصلی خودش */
+}
+
+/* تگ ظریف VIP گوشه کاور */
+.small-vip-tag {
+    z-index: 7;
+    font-size: 0.7rem !important;
+    padding: 5px 8px !important;
+    border-radius: 5px !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+/* ─── ادامه استایل‌های اصلی قالب ─── */
+.stats-card {
+    background: #222;
+    color: white;
+    border: none;
+    border-radius: 15px;
+}
+
+.nav-avatar {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #ffc107;
+}
+
+.hero-section {
+    background: linear-gradient(135deg, #1e1e1e, #343a40);
+    padding: 20px 20px;
+    border-radius: 20px;
+    margin-bottom: 40px;
+}
+
+.hero-section h1 {
+    font-size: 3rem;
+    font-weight: 700;
+}
+
+.hero-section p {
+    color: #ccc;
+}
+
+.artist-link {
+    color: #0798ff;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.artist-link:hover {
+    color: white;
+}
+
+.music-cover-detail {
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 16px;
+    padding: 10px;
+}
+
+.music-info-card {
+    background: #222;
+    padding: 25px;
+    border-radius: 20px;
+}
+
+.music-detail-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+.artist-link-small {
+    color: #ffc107;
+    text-decoration: none;
+}
+
+.music-stats {
+    display: flex;
+    gap: 25px;
+    margin: 20px 0;
+    color: #aaa;
+    font-size: 18px;
+}
+
+.comment-card {
+    background: #222;
+    border: none;
+    color: white;
+}
+
+.comment-reply {
+    margin-right: 50px;
+    background: #2d2d2d;
+    border: none;
+    color: white;
+}
+
+.related-card {
+    background: #222;
+    border: none;
+    color: white;
+    transition: .3s;
+}
+
+.related-card:hover {
+    transform: translateY(-8px);
+}
+
+.related-card img {
+    height: 220px;
+    object-fit: cover;
+}
+
+.music-meta {
+    color: #999;
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
+
+.plyr {
+    margin-top: 20px;
+    border-radius: 18px;
+}
+
+.plyr--audio {
+    background: #1b1b1b !important;
+}
+
+.plyr__controls {
+    background: #222 !important;
+    color: white !important;
+}
+
+.plyr__control {
+    color: #ffc107 !important;
+}
+
+.plyr__control:hover {
+    background: #ffc107 !important;
+    color: black !important;
+}
+
+.plyr__progress__buffer {
+    color: #444 !important;
+}
+
+.plyr--full-ui input[type=range] {
+    color: #ffc107 !important;
+}
+
+.plyr__time {
+    color: #ddd !important;
+    font-weight: 500;
+}
+
+#suggestions {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 100%;
+    background: #222;
+    border-radius: 10px;
+    margin-top: 5px;
+    overflow: hidden;
+    z-index: 9999;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, .4);
+}
+
+.suggestion-item {
+    display: block;
+    padding: 12px;
+    color: white;
+    text-decoration: none;
+    border-bottom: 1px solid #333;
+    transition: .2s;
+}
+
+.suggestion-item:hover {
+    background: #ffc107;
+    color: black;
+}
+
+.artist-image {
+    width: 180px;
+    height: 180px;
+    border-radius: 10px;
+}
+
+.album-header {
+    background: #1e1e1e;
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.album-cover-large {
+    width: 100%;
+    border-radius: 15px;
+    object-fit: cover;
+}
+
+.album-tracks {
+    background: #1e1e1e;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.track-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 20px;
+    border-bottom: 1px solid #333;
+    background: #2a2a2a;
+    flex-wrap: wrap
+}
+
+.track-row:hover {
+    background: #2a2a2a;
+}
+
+.track-number {
+    width: 30px;
+    color: #aaa;
+}
+
+.track-play {
+    width: 60px;
+}
+
+.track-info {
+    flex: 1;
+}
+
+.track-title {
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.track-stats {
+    color: #888;
+    font-size: .9rem;
+    margin-top: 5px;
+}
+
+.track-download {
+    width: 120px;
+    text-align: left;
+}
+
+@media (max-width: 768px) {
+    .album-title {
+        font-size: 2rem;
+        margin-top: 20px;
+    }
+}
+
+.track-title:hover {
+    color: #ffc107;
+}
+
+.track-row.active {
+    background: #2c2c2c;
+    border-right: 4px solid #ffc107;
+}
+
+.album-cover-large {
+    width: 100%;
+    max-height: 400px;
+    border-radius: 15px;
+    object-fit: cover;
+    box-shadow: 0 0 25px rgba(0, 0, 0, .4);
+}
+
+.play-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+}
+
+.btn-warning:hover {
+    background-color: black;
+    color: #ffb300 !important;
+    transform: translateY(-2px);
+    transition: 0.2s ease;
+}
+
+.card-body {
+    padding: 10px !important;
+}
+
+.music-card .card-body div {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #888;
+    margin-top: 8px;
+    border-top: 1px solid #2a2a2a;
+    padding-top: 6px;
+}
+
+.music-card p {
+    font-size: 0.8rem !important;
+    margin-bottom: 4px !important;
+}
+
+/* ریسپانسیو و بهینه‌سازی منو روی موبایل */
+@media (max-width: 991.98px) {
+    .navbar-collapse {
+        background: #1a1a1a;
+        padding: 15px;
+        border-radius: 10px;
+        margin-top: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    }
+    .navbar-nav .nav-link {
+        padding: 8px 0;
+        border-bottom: 1px solid #2b2b2b;
+    }
+    .navbar-nav .dropdown-menu {
+        background: #222 !important;
+        border: none;
+    }
+    .navbar-nav .dropdown-item {
+        color: #fff !important;
+    }
+}
+
+/* تنظیمات پایداری منو در دسکتاپ (بدون فشرده شدن) */
+@media (min-width: 992px) {
+    .navbar-collapse {
+        display: flex !important;
+        justify-content: space-between !important;
+    }
+    .navbar-nav {
+        flex-direction: row !important;
+    }
+    .navbar-nav .nav-link {
+        padding-right: 12px !important;
+        padding-left: 12px !important;
+    }
+}
+
+/* جادوی اسلایدر افقی برای موبایل (هم آهنگ هم آلبوم و هم منوی اسلایدر ژانرها) */
+@media (max-width: 576px) {
+    .mobile-slider {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 15px;
+        padding-right: 5px;
+        padding-left: 5px;
+        gap: 2px;
+    }
+
+    /* اندازه کارت‌های معمولی در اسلایدر موبایل طوری که کارت بعدی کمی مشخص باشد */
+    .mobile-slider > [class*="col-"] {
+        flex: 0 0 43% !important;
+        max-width: 43% !important;
+        scroll-snap-align: start;
+        margin-bottom: 0 !important;
+    }
+
+    /* بهینه‌سازی اندازه فونت کارت‌ها در موبایل */
+    .music-title {
+        font-size: 0.85rem !important;
+    }
+    .card-body p {
+        font-size: 0.75rem !important;
+    }
+}
+
+/* مخفی کردن نوار اسکرول پیش‌فرض مرورگر در ردیف اسلایدرهای افقی */
+.mobile-slider::-webkit-scrollbar {
+    height: 5px;
+}
+.mobile-slider::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+}
+.mobile-slider::-webkit-scrollbar-thumb {
+    background: rgba(255, 193, 7, 0.15);
+    border-radius: 10px;
+}
+.mobile-slider:hover::-webkit-scrollbar-thumb {
+    background: rgba(255, 193, 7, 0.4);
+}
+
+/* ─── استایل‌های اختصاصی و پرمیوم کارت ژانرها ─── */
+.genre-premium-card {
+    background: linear-gradient(145deg, #1e1e1e, #141414) !important;
+    border: 1px solid #2a2a2a !important;
+    border-radius: 16px !important;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.genre-premium-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, transparent, rgba(255, 193, 7, 0.04), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+}
+
+.genre-premium-card:hover::before {
+    transform: translateX(100%);
+}
+
+.genre-premium-card:hover {
+    transform: translateY(-8px) !important;
+    border-color: #ffc107 !important;
+    box-shadow: 0 12px 24px rgba(255, 193, 7, 0.18) !important;
+}
+
+.genre-icon-wrapper {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.4s ease;
+}
+
+.genre-premium-card:hover .genre-icon-wrapper {
+    background: rgba(255, 193, 7, 0.1);
+    border-color: rgba(255, 193, 7, 0.3);
+    transform: scale(1.1) rotate(8deg);
+}
+
+.genre-icon {
+    font-size: 1.6rem;
+    transition: transform 0.3s ease;
+}
+
+.genre-title {
+    color: #e0e0e0;
+    transition: color 0.3s ease;
+}
+
+.genre-premium-card:hover .genre-title {
+    color: #ffc107 !important;
+    text-shadow: 0 0 10px rgba(255, 193, 7, 0.3);
+}
+
+.genre-slider-item {
+    flex: 0 0 auto;
+    width: 180px;
+    max-width: 100%;
+    padding-left: 8px;
+    padding-right: 8px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.slider-arrow-btn {
+    position: absolute;
+    top: 58%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    background: rgba(30, 30, 30, 0.85);
+    border: 1px solid #333;
+    color: #ffc107;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    z-index: 15;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+.slider-arrow-btn:hover {
+    background: #ffc107;
+    color: #000;
+    border-color: #ffc107;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.right-arrow {
+    right: -15px;
+}
+
+.left-arrow {
+    left: -15px;
+    transform: translateY(-50%) rotate(180deg);
+}
+
+.left-arrow:hover {
+    transform: translateY(-50%) rotate(180deg) scale(1.1);
+}
+
+@media (max-width: 768px) {
+    .slider-arrow-btn {
+        display: none !important;
+    }
+    .right-arrow, .left-arrow {
+        display: none !important;
+    }
+    .genre-slider-item {
+        width: 140px;
+    }
+}
+
+/* ─── استایل‌ها و انیمیشن شیک هاور دراپ‌داون نوبار ─── */
+@media (min-width: 992px) {
+    .navbar-nav .nav-item.dropdown:hover .dropdown-menu {
+        display: block;
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .navbar-nav .dropdown-menu {
+        display: block;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(15px);
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        background: linear-gradient(145deg, #1e1e1e, #141414) !important;
+        border: 1px solid #2a2a2a !important;
+        border-radius: 12px !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+        padding: 8px 0 !important;
+        min-width: 160px;
+        margin-top: 5px !important;
+    }
+}
+
+.navbar-nav .dropdown-item {
+    color: #e0e0e0 !important;
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 10px 18px !important;
+    transition: all 0.25s ease !important;
+    text-align: right;
+}
+
+.navbar-nav .dropdown-item:hover {
+    background: rgba(255, 193, 7, 0.08) !important;
+    color: #ffc107 !important;
+    padding-right: 24px !important;
+}
+
+.navbar-nav .nav-item.dropdown:hover .nav-link.dropdown-toggle {
+    color: #ffc107 !important;
+}
+
+.navbar-dark .navbar-nav .dropdown-toggle::after {
+    transition: transform 0.3s ease;
+    vertical-align: middle;
+    margin-right: 5px;
+}
+
+.navbar-nav .nav-item.dropdown:hover .dropdown-toggle::after {
+    transform: rotate(180deg);
+    color: #ffc107;
+}
+
+/* ─── استایل مدرن و پرمیوم بخش صفحه‌بندی (Pagination) ─── */
+.pagination {
+    gap: 8px;
+    margin-top: 40px;
+    margin-bottom: 20px;
+}
+
+.pagination .page-link {
+    background: #1e1e1e !important;
+    color: #e0e0e0 !important;
+    border: 1px solid #2a2a2a !important;
+    border-radius: 10px !important;
+    padding: 10px 16px !important;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.pagination .page-item:not(.active) .page-link:hover {
+    background: rgba(255, 193, 7, 0.05) !important;
+    color: #ffc107 !important;
+    border-color: #ffc107 !important;
+    transform: translateY(-4px);
+    box-shadow: 0 6px 15px rgba(255, 193, 7, 0.15) !important;
+}
+
+.pagination .page-item.active .page-link {
+    background: #ffc107 !important;
+    color: #000000 !important;
+    border-color: #ffc107 !important;
+    font-weight: 700;
+    box-shadow: 0 0 20px rgba(255, 193, 7, 0.35) !important;
+    transform: scale(1.05);
+}
+
+.pagination .page-item.disabled .page-link {
+    background: #141414 !important;
+    color: #555555 !important;
+    border-color: #222222 !important;
+    opacity: 0.6;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none !important;
+}
+
+.pagination .page-item:first-child .page-link,
+.pagination .page-item:last-child .page-link {
+    font-weight: bold;
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+}
+
+/* ─── استایل اختصاصی باکس ارسال کامنت ─── */
+.comment-textarea::placeholder {
+    color: #888888 !important;
+    font-size: 0.9rem;
+    opacity: 1;
+}
+
+.comment-textarea {
+    background-color: #1e1e1e !important;
+    border: 1px solid #2a2a2a !important;
+    border-radius: 12px !important;
+    padding: 12px 15px !important;
+    transition: all 0.3s ease !important;
+}
+
+.comment-textarea:focus {
+    background-color: #1b1b1b !important;
+    border-color: #ffc107 !important;
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.12) !important;
+}
+
+/* ─── استایل اختصاصی باکس ارسال پاسخ (Reply Input) ─── */
+.reply-input::placeholder {
+    color: #888888 !important;
+    font-size: 0.85rem;
+    opacity: 1;
+}
+
+.reply-input {
+    background-color: #1e1e1e !important;
+    border: 1px solid #343a40 !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    transition: all 0.3s ease !important;
+}
+
+.reply-input:focus {
+    background-color: #1b1b1b !important;
+    border-color: #ffc107 !important;
+    box-shadow: 0 0 12px rgba(255, 193, 7, 0.12) !important;
+    color: #ffffff !important;
+}
+
+/* ─── لایه پاپ‌آپ سینمایی متن آهنگ (Lyrics Portrait Overlay) ─── */
+.lyrics-overlay-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 50;
+    overflow: hidden;
+    background-color: rgba(10, 10, 10, 0.88);
+    border: 1px solid #ffc107;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8);
+    opacity: 0;
+    transform: scale(0.96);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lyrics-overlay-container.active {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.lyrics-portrait-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    filter: blur(25px) brightness(0.25);
+    z-index: 1;
+    transform: scale(1.1);
+}
+
+.lyrics-close-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: #ffffff;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.lyrics-close-btn:hover {
+    background: #dc3545;
+    color: #fff;
+    transform: rotate(90deg);
+}
+
+.lyrics-overlay-content {
+    position: relative;
+    z-index: 5;
+    height: 100%;
+    padding: 30px 40px;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+
+.lyrics-box-bold {
+    white-space: pre-line;
+    line-height: 2.3;
+    text-align: center;
+    color: #ffffff !important;
+    font-size: 1.25rem;
+    font-weight: 800 !important;
+    overflow-y: auto;
+    flex-grow: 1;
+    padding-bottom: 20px;
+    scrollbar-width: thin;
+    scrollbar-color: #ffc107 rgba(0,0,0,0.2);
+}
+
+.lyrics-box-bold::-webkit-scrollbar {
+    width: 6px;
+}
+.lyrics-box-bold::-webkit-scrollbar-thumb {
+    background-color: #ffc107;
+    border-radius: 10px;
+}
+
+@media (max-width: 576px) {
+    .vip-cover-badge {
+        top: 3px;
+        right: 3px;
+        font-size: 0.6rem;
+        padding: 4px 10px;
+    }
+}
+
+/* ─── استایل اختصاصی کارت‌های گرید خوانندگان ─── */
+.artist-grid-card {
+    background: #1a1a1a !important;
+    border: 1px solid #2a2a2a !important;
+    border-radius: 16px !important;
+    overflow: hidden;
+    transition: all 0.3s ease-in-out !important;
+}
+
+.artist-grid-card:hover {
+    transform: translateY(-7px);
+    border-color: #ffc107 !important;
+    box-shadow: 0 10px 25px rgba(255, 193, 7, 0.08) !important;
+}
+
+.artist-grid-avatar-container {
+    width: 140px;
+    height: 140px;
+    border-radius: 50% !important;
+    overflow: hidden;
+    border: 3px solid #333;
+    transition: all 0.3s ease;
+}
+
+.artist-grid-card:hover .artist-grid-avatar-container {
+    border-color: #ffc107;
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.2);
+}
+
+.artist-grid-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.artist-grid-card:hover .artist-grid-img {
+    transform: scale(1.06);
+}
+
+.artist-grid-title a {
+    transition: color 0.2s ease;
+    font-size: 1.1rem;
+}
+
+.artist-grid-card:hover .artist-grid-title a {
+    color: #ffc107 !important;
+}
+
+/* ─── استایل‌های پیشرفته سیستم کاربری و پروفایل FarMusic ─── */
+.user-profile-header-card {
+    background: linear-gradient(145deg, #1e1e1e, #131313);
+    border: 1px solid #2a2a2a;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6) !important;
+}
+
+.user-avatar-wrapper {
+    width: 140px;
+    height: 140px;
+    border-radius: 50% !important;
+    overflow: hidden;
+    border: 3px solid #ffc107;
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.2);
+}
+
+.user-profile-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-profile-bio {
+    background-color: #0f0f0f !important;
+    border: 1px solid #222;
+}
+
+.alert-vip {
+    background: rgba(255, 193, 7, 0.1) !important;
+    border: 1px solid rgba(255, 193, 7, 0.2) !important;
+}
+.alert-no-vip {
+    background: #191919 !important;
+    border: 1px solid #2d2d2d !important;
+}
+
+.user-panel-btn {
+    background: #1a1a1a !important;
+    border: 1px solid #2a2a2a !important;
+    transition: all 0.25s ease-in-out !important;
+    text-align: right;
+}
+.user-panel-btn:hover {
+    background: #222222 !important;
+    border-color: #ffc107 !important;
+    transform: translateX(-4px);
+}
+
+.auth-premium-card {
+    background: linear-gradient(145deg, #1a1a1a, #111111) !important;
+    border: 1px solid #2a2a2a !important;
+}
+
+.premium-form p {
+    margin-bottom: 20px !important;
+}
+.premium-form label {
+    display: block;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+    color: #ffc107;
+    font-weight: 500;
+}
+.premium-form input[type="text"],
+.premium-form input[type="password"],
+.premium-form input[type="email"],
+.premium-form input[type="number"],
+.premium-form textarea,
+.premium-form select {
+    width: 100%;
+    background-color: #1a1a1a !important;
+    border: 1px solid #333 !important;
+    border-radius: 8px !important;
+    padding: 10px 14px !important;
+    color: #ffffff !important;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+.premium-form input:focus,
+.premium-form textarea:focus {
+    outline: none !important;
+    border-color: #ffc107 !important;
+    box-shadow: 0 0 10px rgba(255, 193, 7, 0.15) !important;
+}
+.premium-form .helptext {
+    display: block;
+    font-size: 0.78rem;
+    color: #777777;
+    margin-top: 5px;
+}
+.extra-small {
+    font-size: 0.75rem;
+}
+
+/* ─── استایل دانلود و پلی‌لیست (RTL Fix) ─── */
+.btn-premium-download {
+    background: linear-gradient(135deg, #198754, #146c43) !important;
+    border: none !important;
+    color: #fff !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 15px rgba(25, 135, 84, 0.2);
+    height: 46px !important;
+}
+.btn-premium-download:hover {
+    background: linear-gradient(135deg, #157347, #105133) !important;
+    transform: translateY(-2px);
+}
+
+.custom-playlist-select {
+    border: 1px solid #3d3d3d !important;
+    background-color: #141414 !important;
+    color: #e0e0e0 !important;
+    font-size: 0.95rem !important;
+    height: 46px !important;
+    border-radius: 8px !important;
+    padding: 0 12px 0 35px !important;
+    background-position: left 12px center !important;
+    direction: rtl !important;
+    text-align: right !important;
+}
+.custom-playlist-select:focus {
+    border-color: #ffc107 !important;
+    box-shadow: none !important;
+}
+
+.premium-vip-alert-box {
+    background: rgba(220, 53, 69, 0.05) !important;
+    box-shadow: 0 8px 24px rgba(220, 53, 69, 0.1);
+}
+
+@keyframes pulseEffect {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); box-shadow: 0 0 15px rgba(220, 53, 69, 0.4); }
+    100% { transform: scale(1); }
+}
+.animate-pulse {
+    animation: pulseEffect 2s infinite ease-in-out;
+}
+
+/* ─── استایل نهایی فوتر روشن و بدون لایه خاکستری ─── */
+.main-footer {
+    background-color: #0d0d0e !important;
+}
+
+.main-footer h5,
+.main-footer p,
+.main-footer li,
+.main-footer a {
+    color: #ffffff !important;
+}
+
+.main-footer .opacity-90 {
+    opacity: 0.92 !important;
+}
+
+.footer-links a {
+    transition: all 0.25s ease-in-out;
+}
+.footer-links a:hover {
+    color: #ffc107 !important;
+    padding-right: 4px;
+}
+
+.social-box {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background-color: #1a1a1c;
+    transition: all 0.3s ease;
+    border: 1px solid #2e2e30;
+}
+
+.social-box:hover {
+    transform: translateY(-4px);
+    background-color: #242427;
+    border-color: #ffc107;
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);
+}
+
+.style-credit {
+    font-size: 0.85rem;
+}
+
+#likeBtn:active {
+    transform: scale(0.95);
+}
+
+/* دکمه دانلود هماهنگ با تم FarMusic */
+.btn-download-main {
+    background-color: #1a1a1a !important;
+    color: #ffc107 !important;
+    border: 2px solid #ffc107 !important;
+    transition: all 0.3s ease-in-out;
+}
+
+.btn-download-main:hover {
+    background-color: #ffc107 !important;
+    color: #111111 !important;
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.4);
+    transform: translateY(-2px);
+}
+
+.btn-download-main:active {
+    transform: translateY(0);
+}
+
+/* استایل دکمه‌های کنترل روی کارت موزیک */
+.music-card-custom {
+    position: relative;
+    overflow: hidden;
+}
+
+.card-action-btn {
+    position: absolute;
+    top: 10px;
+    background: rgba(0, 0, 0, 0.6);
+    border: none;
+    color: #fff;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.card-action-btn:hover {
+    background: #ffc107;
+    color: #000;
+}
+
+
+.music-card-custom:hover {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* دکمه پلی همیشه روی کارت یا روی کاور باشد */
+.play-btn-card {
+    right: 10px;
+}
+
+/* استایل پلیر ثابت پایین صفحه */
+.global-audio-player {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #0d0d0e;
+    border-top: 2px solid #ffc107;
+    padding: 10px 20px;
+    z-index: 1000;
+    display: none; /* تا وقتی آهنگی پلی نشده مخفی است */
+    align-items: center;
+    justify-content: space-between;
+}
+.global-audio-player audio {
+    width: 100%;
+    max-width: 500px;
+}
+
+/* ─── متغیرهای اصلی پلیر برای تغییر رنگ سبز پیش‌فرض به زرد FarMusic ─── */
+/* ─── سفارشی‌سازی متغیرها و کدهای داخلی هسته پِلیِر Plyr ─── */
+:root {
+    --plyr-color-main: #ffc107 !important; /* رنگ زرد تجاری سایت شما */
+    --plyr-audio-control-background-hover: #2a2a2a !important;
+    --plyr-audio-control-color: #ffffff !important;
+    --plyr-audio-control-color-hover: #ffc107 !important;
+}
+
+/* حذف لایه بک‌گراند خام خود کنترلر اصلی برای نمایش شفاف روی کارت ما */
+.plyr--audio .plyr__controls {
+    background: transparent !important;
+    border: none !important;
+    padding: 4px 0 0 0 !important;
+    color: #ffffff !important;
+}
+
+/* تغییر دادن حالت اشاره‌گر ماوس روی ریل زمان برای کلیک‌پذیری بهتر */
+.plyr__progress input[type="range"] {
+    cursor: pointer !important;
+}
+
+/* استایل‌دهی به فونت و رنگ اعداد ثانیه‌شمار */
+.plyr__time {
+    color: #b3b3b3 !important;
+    font-size: 0.8rem !important;
+}
+
+/* رنگ لایه موقت بافر لودینگ پشت اسلایدر اصلی */
+.plyr--audio .plyr__progress__buffer {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ─── استایل دکمه پلی شیشه‌ای زرد روی کارت‌ها ─── */
+/* ─── استایل دکمه پلی دایره‌ای شیشه‌ای زرد ─── */
+/* ─── پوزیشن‌دهی دکمه پخش در مرکز کارت موزیک ─── */
+.music-card-image-container {
+    position: relative;
+    overflow: hidden;
+}
+
+/* ─── استایل دکمه پلی دایره‌ای شیشه‌ای زرد FarMusic ─── */
+.play-btn-card {
+    position: absolute;
+    top: 30px; /* انتقال به مرکز دقیق کاور */
+    right: -5px;
+    transform: translate(-50%, -50%) scale(0.9);
+    width: 35px !important; /* کمی بزرگ‌تر برای لمس راحت‌تر در موبایل */
+    height: 35px !important;
+    background: rgba(255, 193, 7, 0.3) !important; /* زرد نیمه شفاف با وضوح بیشتر */
+    border: 2px solid #ffc107 !important;           /* مرز زرد درخشان */
+    border-radius: 50% !important;                  /* کاملاً دایره‌ای */
+    color: #ffc107 !important;                      /* آیکون زرد */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    opacity: 0;                                     /* در دسکتاپ اول مخفی است */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    backdrop-filter: blur(4px) !important;
+    z-index: 10;
+    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3) !important;
+}
+
+/* نمایش دکمه هنگام هاور شدن روی کارت (مخصوص دسکتاپ) */
+.music-card:hover .play-btn-card,
+.card:hover .play-btn-card {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.play-btn-card:hover {
+    background: #ffc107 !important;                 /* در حالت هاور کاملا زرد می‌شود */
+    color: #121212 !important;                      /* آیکون مشکی برای تضاد رنگی */
+    transform: translate(-50%, -50%) scale(1.1) !important;
+    box-shadow: 0 6px 20px rgba(255, 193, 7, 0.5) !important;
+}
+
+/* تراز هندسی دقیق مثلث پخش در مرکز دایره */
+.play-btn-card .play-icon {
+    font-size: 1.2rem;
+    display: inline-block;
+    transform: translateX(-1px); /* جبران خطای دید برای مرکزیت کامل مثلث */
+    line-height: 1;
+}
+
+/* ─── جادوی فیکس موبایل و تبلت (دستگاه‌های لمسی) ─── */
+@media (max-width: 768px), (hover: none) {
+    .play-btn-card {
+        opacity: 1 !important; /* همیشه نمایان */
+        transform: translate(-50%, -50%) scale(1) !important; /* ابعاد ثابت بدون نیاز به هاور */
+        background: rgba(18, 12, 12, 0.65) !important; /* پس‌زمینه تیره شیشه‌ای برای دیده‌شدن عالی روی کاورهای روشن */
+        border-color: #ffc107 !important;
+        color: #ffc107 !important;
+    }
+}
+
+/* ─── استایل دکمه ضربدر بستن مینی‌پلیر ─── */
+.close-player-btn {
+    position: absolute;
+    top: -12px;
+    left: 25px;
+    width: 24px;
+    height: 24px;
+    background: #222222 !important;
+    border: 1px solid #ffc107 !important; /* مرز زرد رنگ هماهنگ با تم */
+    border-radius: 50% !important;
+    color: #ffffff !important;
+    font-size: 16px !important;
+    font-weight: bold !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease-in-out !important;
+    z-index: 99999 !important;
+    line-height: 1 !important;
+    padding: 0 !important;
+}
+
+.close-player-btn:hover {
+    background: #ffc107 !important; /* زرد شدن کامل دکمه در حالت هاور */
+    color: #121212 !important;
+    transform: scale(1.1);
+}
+
+/* ─── فیکس کردن باکس لایک و آمار در نسخه موبایل ─── */
+@media (max-width: 576px) {
+    /* جلوگیری از شکستن کانتینر اصلی به خط بعد */
+    .music-info-card .d-flex.justify-content-between.bg-dark {
+        flex-wrap: nowrap !important;
+        padding: 10px 12px !important; /* کمی پدینگ کمتر برای جا شدن بهتر */
+        gap: 8px !important;
+    }
+
+    /* بهینه‌سازی اندازه فونت و فواصل آمارها در موبایل */
+    .music-info-card .music-stats {
+        gap: 12px !important;
+        font-size: 13px !important;
+    }
+
+    /* متناسب کردن سایز دکمه لایک در موبایل */
+    #likeBtn svg {
+        width: 26px !important;
+        height: 26px !important;
+    }
+}
+

@@ -1,0 +1,570 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load thumbnail %}
+
+{% block title %}{{ music.title }} -
+    {% for art in music.artists.all %}{{ art.name }}{% if not forloop.last %} & {% endif %}{% endfor %} |
+    FarMusic{% endblock %}
+
+{% block canonical %}
+    <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+{% endblock %}
+
+{% block extra_head %}
+    <meta name="description" content="دانلود آهنگ {{ music.title }} از {% for art in music.artists.all %}{{ art.name }}{% if not forloop.last %} و {% endif %}{% endfor %} با پخش آنلاین، متن آهنگ، اطلاعات آلبوم و دانلود مستقیم از FarMusic">
+    <meta property="og:title" content="{{ music.title }} - {% for art in music.artists.all %}{{ art.name }}{% if not forloop.last %} & {% endif %}{% endfor %}">
+    <meta property="og:description" content="دانلود و پخش آنلاین آهنگ {{ music.title }} اثر {% for art in music.artists.all %}{{ art.name }}{% if not forloop.last %} و {% endif %}{% endfor %}">
+    <meta property="og:type" content="music.song">
+
+    {% if music.cover %}
+        <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ music.cover.url }}">
+    {% endif %}
+    <meta property="og:url" content="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+
+    <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "MusicRecording",
+          "name": "{{ music.title|escapejs }}",
+          "byArtist": [
+        {% for art in music.artists.all %}
+            {
+              "@type": "MusicGroup",
+              "name": "{{ art.name|escapejs }}",
+              "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'artist_detail' art.id art.slug_en %}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        {% if music.album %}
+            "inAlbum": {
+              "@type": "MusicAlbum",
+              "name": "{{ music.album.title|escapejs }}"
+            },
+        {% endif %}
+        "url": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}"
+        }
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="row g-4 align-items-center">
+        <div class="col-lg-4 text-center">
+            <div class="position-relative d-inline-block mx-auto">
+                {% if music.cover %}
+                    <img src="{% thumbnail music.cover 'music_detail' %}"
+                         class="img-fluid music-cover-detail rounded-4 shadow-lg"
+                         style="max-width: 320px; width: 100%;"
+                         alt="کاور آهنگ {{ music.title }} از {% for art in music.artists.all %}{{ art.name }} {% endfor %}"
+                         loading="lazy">
+                {% else %}
+                    <img src="{% static 'images/default-cover.jpg' %}"
+                         class="img-fluid music-cover-detail rounded-4 shadow-lg"
+                         style="max-width: 320px; width: 100%;"
+                         alt="کاور آهنگ {{ music.title }}"
+                         loading="lazy">
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-lg-8 position-relative">
+            <div class="music-info-card p-4 rounded-4 shadow-sm"
+                 style="background: #1e1e1e; border: 1px solid #2a2a2a; min-height: 480px;">
+
+                <div class="mb-3">
+                    <h1 class="music-detail-title m-0 fs-2 fw-bold text-white text-end">{{ music.title }}</h1>
+                </div>
+
+                <div class="d-flex flex-wrap gap-3 align-items-center mb-4">
+                    <div class="d-flex gap-1 align-items-center flex-wrap">
+                        {% if music.artists.exists %}
+                            {% for art in music.artists.all %}
+                                <a href="{% url 'artist_detail' art.id art.slug_en %}"
+                                   class="artist-link fs-5 fw-bold text-decoration-none">
+                                    {{ art.name }}
+                                </a>
+                                {% if not forloop.last %}<span class="text-secondary fs-5 mx-1">&</span>{% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <a href="{% url 'artist_detail' music.artist.id music.artist.slug_en %}"
+                               class="artist-link fs-5 fw-bold text-decoration-none">
+                                {{ music.artist.name }}
+                            </a>
+                        {% endif %}
+                        <span class="fs-5 ms-1">🎤</span>
+                    </div>
+                    {% if music.album %}
+                        <span class="text-muted">|</span>
+                        <a href="{% url 'album_detail' music.album.id music.album.slug_en %}"
+                           class="text-secondary text-decoration-none">
+                            💿 آلبوم: {{ music.album.title }}
+                        </a>
+                    {% endif %}
+                    <span class="text-muted">|</span>
+                    <a class="text-warning text-decoration-none small"
+                       href="{% url 'genre_musics' music.genre.id music.genre.slug_en %}">
+                        🏷️ {{ music.genre }}
+                    </a>
+
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between bg-dark p-3 rounded-3 mb-4 flex-wrap gap-3"
+                     style="border: 1px solid #333;">
+                    <div class="music-stats d-flex gap-4 m-0 align-items-center text-secondary fs-6">
+                        <span>❤️ <strong id="likesCountText">{{ music.likes_count }}</strong> لایک</span>
+                        <span>👁 <strong>{{ music.views_count }}</strong> بازدید</span>
+                        <span>⬇ <strong>{{ music.download_count }}</strong> دانلود</span>
+                    </div>
+                    <button id="likeBtn" type="button"
+                            class="btn p-0 border-0 bg-transparent d-flex align-items-center justify-content-center"
+                            style="outline: none; box-shadow: none; transition: transform 0.2s ease;"
+                            data-url="{% url 'toggle_like' music.id %}">
+                        <span id="likeBtnIcon" class="d-flex align-items-center justify-content-center"
+                              style="font-size: 2rem; cursor: pointer;">
+                            {% if is_liked %}
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#dc3545" class="bi bi-heart-fill" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314"></path>
+                                </svg>
+                            {% else %}
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#ffffff" class="bi bi-heart" viewBox="0 0 16 16">
+                                    <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143q.09.083.176.171a3 3 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15"></path>
+                                </svg>
+                            {% endif %}
+                        </span>
+                    </button>
+                </div>
+
+                {% if music.lyrics %}
+                    <div class="mt-2 mb-4">
+                        <button class="btn btn-outline-warning w-100 py-2.5 fw-bold"
+                                onclick="toggleLyricsOverlay(true)">
+                            📝 مشاهده متن آهنگ
+                        </button>
+                    </div>
+                {% endif %}
+
+                <div class="my-4">
+                    {% if can_download %}
+                        <audio id="player" preload="auto">
+                            <source src="{% url 'download_music' music.id %}" type="audio/mpeg">
+                        </audio>
+                    {% else %}
+                        <button class="btn btn-warning w-100 py-3 fw-bold rounded-3" data-bs-toggle="modal"
+                                data-bs-target="#vipModal">
+                            ▶ پخش آنلاین (نیازمند اشتراک)
+                        </button>
+                    {% endif %}
+                </div>
+
+                <hr style="border-color: #333;">
+
+                <div class="mt-4">
+                    {% if can_download %}
+                        <div class="row g-3 align-items-center">
+                            <div class="col-md-5">
+                                <a href="{% url 'download_music' music.id %}?download=true" download
+                                   class="btn btn-download-main w-100 py-2.5 fw-bold rounded-3 d-flex align-items-center justify-content-center gap-2">
+                                    <span>📥</span> دانلود با کیفیت اصلی
+                                </a>
+                            </div>
+
+                            <div class="col-md-7">
+                                {% if user.is_authenticated %}
+                                    <form method="post" action="{% url 'add_to_playlist' music.id %}" class="m-0">
+                                        {% csrf_token %}
+                                        <div class="row g-2">
+                                            <div class="col-7">
+                                                <select name="playlist_id"
+                                                        class="form-select custom-playlist-select bg-dark text-white border-secondary text-end">
+                                                    {% for playlist in playlists %}
+                                                        <option value="{{ playlist.id }}">
+                                                            🎵 {{ playlist.title }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="col-5">
+                                                <button type="submit"
+                                                        class="btn btn-warning w-100 fw-bold py-2 text-nowrap px-2">
+                                                    ➕ افزودن
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                {% else %}
+                                    <div class="h-100 d-flex align-items-center justify-content-center bg-dark rounded-3 px-3 py-2 border border-secondary text-muted small"
+                                         style="min-height: 46px;">
+                                        🔒 برای افزودن به پلی‌لیست باید وارد شوید.
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="text-center p-4 rounded-4 premium-vip-alert-box border border-danger">
+                            <a href="{% url 'buy_subscription' %}"
+                               class="btn btn-danger px-5 py-2.5 fw-bold rounded-pill shadow-sm animate-pulse">
+                                👑 خرید اشتراک VIP
+                            </a>
+                            <p class="text-danger mt-3 mb-0 small fw-bold">
+                                دانلود و پخش آنلاین این اثر مخصوص کاربران ویژه است.
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if music.lyrics %}
+                <div id="lyricsOverlay" class="lyrics-overlay-container rounded-4 d-none">
+                    {% if music.cover %}
+                        <div class="lyrics-portrait-bg"
+                             style="background-image: url('{% thumbnail music.cover "music_detail" %}');"></div>
+                    {% else %}
+                        <div class="lyrics-portrait-bg"
+                             style="background-image: url('{% static "images/default-cover.jpg" %}');"></div>
+                    {% endif %}
+                    <button class="lyrics-close-btn" onclick="toggleLyricsOverlay(false)" title="بستن متن">✕</button>
+
+                    <div class="lyrics-overlay-content">
+                        <h4 class="text-warning fw-bold mb-4">🎵 متن آهنگ {{ music.title }}</h4>
+                        <div class="lyrics-box-bold">
+                            {{ music.lyrics }}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="modal fade" id="vipModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-white border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title text-warning">⭐ حساب کاربری ویژه</h5>
+                </div>
+                <div class="modal-body py-4">
+                    برای پخش آنلاین این آهنگ باید اشتراک VIP فعال داشته باشید.
+                </div>
+                <div class="modal-footer border-secondary">
+                    <a href="{% url 'buy_subscription' %}" class="btn btn-warning fw-bold">خرید اشتراک</a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr class="my-5" style="border-color: #333;">
+
+    <!-- بخش آهنگ‌های مرتبط (به بالا منتقل شد) -->
+    <h3 class="mb-4">🎵 آهنگ‌های مرتبط</h3>
+    <div class="row mobile-slider mb-5">
+        {% for item in related_musics %}
+            <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-4">
+                <div class="card h-100 shadow-sm music-card">
+                    <a href="{% url 'music_detail' item.id item.slug_en %}">
+                        {% if item.cover %}
+                            <img src="{% thumbnail item.cover 'music_card' %}"
+                                 class="card-img-top music-cover"
+                                 alt="دانلود آهنگ {{ item.title }} از {% if item.artists.exists %}{% for art in item.artists.all %}{{ art.name }} {% endfor %}{% else %}{{ item.artist.name }}{% endif %}"
+                                 loading="lazy">
+                        {% else %}
+                            <img src="{% static 'images/default-cover.jpg' %}"
+                                 class="card-img-top music-cover"
+                                 alt="دانلود آهنگ {{ item.title }}"
+                                 loading="lazy">
+                        {% endif %}
+                    </a>
+                <button class="play-btn-card"
+                            data-audio-url="{% url 'download_music' music.id %}"
+                            data-title="{{ music.title }}"
+                            data-artist="{{ music.artist.name }}"
+                            data-is-vip="{{ music.is_vip|yesno:'true,false' }}"
+                            data-cover-url="{% if music.cover %}{{ music.cover.url }}{% endif %}">
+                        ▶
+                    </button>
+                    <div class="card-body">
+                        <h5 class="card-title music-title">
+                            <a href="{% url 'music_detail' item.id item.slug_en %}" class="text-decoration-none">
+                                {{ item.title }}
+                            </a>
+                        </h5>
+                        <p class="text-secondary mb-2">
+                            {% if item.artists.exists %}
+                                {% for art in item.artists.all %}
+                                    <a href="{% url 'artist_detail' art.id art.slug_en %}"
+                                       class="artist-link text-decoration-none small">
+                                        {{ art.name }}
+                                    </a>
+                                    {% if not forloop.last %}<span class="text-muted small">&</span>{% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <a href="{% url 'artist_detail' item.artist.id item.artist.slug_en %}"
+                                   class="artist-link text-decoration-none small">
+                                    {{ item.artist.name }}
+                                </a>
+                            {% endif %}
+                            <span class="small">🎤</span>
+                        </p>
+                        <p class="text-secondary mb-2">
+                            <a class="artist-link" href="{% url 'genre_musics' item.genre.id item.genre.slug_en %}">
+                                {{ item.genre }}
+                            </a>
+                        </p>
+                        <div class="small opacity-75">
+                            ❤️ {{ item.likes_count }}
+                            ?? {{ item.comments_count }}
+                            ⬇ {{ item.download_count }}
+                            👁 {{ item.views_count }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12"><p class="text-muted">آهنگ مرتبطی یافت نشد.</p></div>
+        {% endfor %}
+    </div>
+
+    <hr class="my-5" style="border-color: #333;">
+
+    <!-- بخش نظرات -->
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h3 class="mb-4 d-flex align-items-center gap-2">
+                <span>💬 نظرات کاربران</span>
+                <span id="comments-count-badge" class="badge bg-secondary fs-6">{{ comments|length }}</span>
+            </h3>
+
+            {% if user.is_authenticated %}
+                <form id="main-comment-form" method="post" action="{% url 'add_comment' music.id %}" class="mb-5">
+                    {% csrf_token %}
+                    <div class="card bg-dark border-secondary p-3 rounded-3">
+                    <textarea name="text" required class="form-control bg-dark text-white border-0 comment-textarea"
+                              rows="3"
+                              placeholder="نظر خود را درباره این آهنگ بنویسید..."
+                              style="resize: none; box-shadow: none;"></textarea>
+                        <div class="text-end mt-2">
+                            <button type="submit" class="btn btn-primary px-4 fw-bold">ارسال نظر</button>
+                        </div>
+                    </div>
+                </form>
+            {% else %}
+                <div class="alert alert-secondary bg-dark border-secondary text-light text-center mb-5" role="alert">
+                    برای ارسال نظر ابتدا باید <a href="{% url 'login' %}"
+                                                 class="text-warning text-decoration-none fw-bold">وارد حساب کاربری</a>
+                    خود شوید.
+                </div>
+            {% endif %}
+
+            <div id="comment-list-container" class="comment-list">
+                {% for comment in comments %}
+                    <div class="card comment-card mb-4 border-0 rounded-3 shadow-sm"
+                         style="background: #1e1e1e; border: 1px solid #2a2a2a !important;">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="{% if comment.user.profile.avatar %}{{ comment.user.profile.avatar.url }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}"
+                                         class="nav-avatar" alt="آواتار {{ comment.user.username }}" loading="lazy"
+                                         style="width: 45px; height: 45px; border-radius: 50%;">
+                                    <div>
+                                        <strong class="text-white d-block">{{ comment.user.username }}</strong>
+                                        <small class="text-muted">{{ comment.created_at|date:"Y/m/d - H:i" }}</small>
+                                    </div>
+                                </div>
+                                {% if comment.user == user %}
+                                    <a href="{% url 'delete_comment' comment.id %}"
+                                       class="btn btn-sm btn-outline-danger">حذف نظر</a>
+                                {% endif %}
+                            </div>
+
+                            <p class="text-light-50 lh-lg" style="white-space: pre-line;">{{ comment.text }}</p>
+
+                            <div id="replies-container-{{ comment.id }}">
+                                {% for reply in comment.replies.all %}
+                                    <div class="card comment-reply mt-3 border-0 rounded-3"
+                                         style="background: #252525; margin-right: 35px; border-right: 3px solid #ffc107 !important;">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex align-items-center gap-2 mb-2">
+                                                <img src="{% if reply.user.profile.avatar %}{{ reply.user.profile.avatar.url }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}"
+                                                     class="nav-avatar" alt="آواتار {{ reply.user.username }}"
+                                                     loading="lazy"
+                                                     style="width: 35px; height: 35px; border-radius: 50%;">
+                                                <div>
+                                                    <strong class="text-white d-block small">{{ reply.user.username }}</strong>
+                                                    <small class="text-muted"
+                                                           style="font-size: 11px;">{{ reply.created_at|date:"Y/m/d" }}</small>
+                                                </div>
+                                            </div>
+                                            <p class="text-light-50 m-0 small lh-base">{{ reply.text }}</p>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                            {% if user.is_authenticated %}
+                                <form method="post" action="{% url 'reply_comment' comment.id %}"
+                                      class="mt-4 pt-3 ajax-reply-form" style="border-top: 1px solid #333;">
+                                    {% csrf_token %}
+                                    <div class="row g-2 align-items-center">
+                                        <div class="col-9 col-md-10">
+                                            <input type="text" name="text" required
+                                                   class="form-control form-control-sm bg-dark text-white border-secondary reply-input"
+                                                   placeholder="پاسخ خود را بنویسید...">
+                                        </div>
+                                        <div class="col-3 col-md-2 d-flex gap-2 justify-content-end">
+                                            <button class="btn btn-sm btn-secondary px-3" type="submit">پاسخ</button>
+                                            <a href="{% url 'report_comment' comment.id %}"
+                                               class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center text-decoration-none"
+                                               title="گزارش خطا">
+                                                🚩
+                                            </a>
+                                        </div>
+                                    </div>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% empty %}
+                    <p id="no-comments-text" class="text-center text-muted py-4">هنوز هیچ نظری برای این اثر ثبت نشده است. اولین نفر باشید!</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleLyricsOverlay(show) {
+            const overlay = document.getElementById('lyricsOverlay');
+            if (!overlay) return;
+
+            if (show) {
+                overlay.classList.remove('d-none');
+                setTimeout(() => overlay.classList.add('active'), 10);
+            } else {
+                overlay.classList.remove('active');
+                setTimeout(() => overlay.classList.add('d-none'), 300);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // ===== Plyr =====
+            if (document.getElementById('player')) {
+                const player = new Plyr('#player', {
+                    controls: ['play', 'progress', 'current-time', 'duration', 'volume', 'settings'],
+                    seekTime: 10
+                });
+
+                player.on('ready', () => {
+                    const seekInput = document.querySelector('.plyr__progress input[type="range"]');
+                    if (seekInput) {
+                        seekInput.removeAttribute('disabled');
+                    }
+                });
+            }
+
+            // ===== AJAX Like =====
+            const likeBtn = document.getElementById('likeBtn');
+
+            if (likeBtn) {
+                likeBtn.addEventListener('click', async function () {
+                    const url = this.dataset.url;
+                    const likeBtnIcon = document.getElementById('likeBtnIcon');
+                    const likesCountText = document.getElementById('likesCountText');
+
+                    const heartFilled = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#dc3545" class="bi bi-heart-fill" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314"/></svg> `;
+                    const heartEmpty = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#ffffff" class="bi bi-heart" viewBox="0 0 16 16"><path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143q.09.083.176.171a3 3 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15"/></svg> `;
+
+                    try {
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': '{{ csrf_token }}',
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok || !data.success) {
+                            alert(data.message || 'خطا در ثبت لایک');
+                            return;
+                        }
+
+                        if (likesCountText) {
+                            likesCountText.textContent = data.likes_count;
+                        }
+
+                        if (data.liked) {
+                            likeBtnIcon.innerHTML = heartFilled;
+                        } else {
+                            likeBtnIcon.innerHTML = heartEmpty;
+                        }
+
+                    } catch (error) {
+                        console.error(error);
+                        alert('خطا در ارتباط با سرور');
+                    }
+                });
+            }
+        });
+
+        const mainCommentForm = document.getElementById('main-comment-form');
+        const commentListContainer = document.getElementById('comment-list-container');
+        const noCommentsText = document.getElementById('no-comments-text');
+        const commentsCountBadge = document.getElementById('comments-count-badge');
+
+        if (mainCommentForm) {
+            mainCommentForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const url = this.action;
+                const formData = new FormData(this);
+
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        mainCommentForm.querySelector('textarea').value = '';
+                        if (noCommentsText) noCommentsText.remove();
+                        if (commentsCountBadge) commentsCountBadge.textContent = data.comments_count;
+
+                        const newCommentHtml = `
+                    <div class="card comment-card mb-4 border-0 rounded-3 shadow-sm" style="background: #1e1e1e; border: 1px solid #2a2a2a !important;">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="${data.avatar_url}" class="nav-avatar" style="width: 45px; height: 45px; border-radius: 50%;">
+                                    <div>
+                                        <strong class="text-white d-block">${data.username}</strong>
+                                        <small class="text-muted">${data.created_at}</small>
+                                    </div>
+                                </div>
+                                <a href="/comments/delete/${data.comment_id}/" class="btn btn-sm btn-outline-danger">حذف نظر</a>
+                            </div>
+                            <p class="text-light-50 lh-lg" style="white-space: pre-line;">${data.text}</p>
+                            <div id="replies-container-${data.comment_id}"></div>
+
+                            <form method="post" action="/comments/reply/${data.comment_id}/" class="mt-4 pt-3 ajax-reply-form" style="border-top: 1px solid #333;">
+                                <input type="hidden" name="csrfmiddlewaretoken" value="${formData.get('csrfmiddlewaretoken')}">
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-9 col-md-10">
+                                        <input type="text" name="text" required class="form-control form-control-sm bg-dark text-white border-secondary reply-input" placeholder="پاسخ خود را بنویسید...">
+                                    </div>
+                                    <div class="col-3 col-md-2 d-flex gap-2 justify-content-end">
+                                        <button class="btn btn-sm btn-secondary px-3" type="submit">پاسخ</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>`;
+                        commentListContainer.insertAdjacentHTML('afterbegin', newCommentHtml);
+                    }
+                } catch (error) {
+                    console.error("Error submitting comment:", error);
+                }
+            });
+        }
+    </script>
+{% endblock %}

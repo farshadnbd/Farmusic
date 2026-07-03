@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% load thumbnail %}
+{% load static %}
+{% block title %}
+    {{ artist.name }} | FarMusic
+{% endblock %}
+
+{% block extra_head %}
+    <meta name="description"
+          content="دانلود تمامی آهنگ‌ها و آلبوم‌های {{ artist.name }} همراه با متن آهنگ و پخش آنلاین در FarMusic">
+    <meta property="og:title"
+          content="{{ artist.name }} | FarMusic">
+    <meta property="og:description"
+          content="تمامی آهنگ‌ها و آلبوم‌های {{ artist.name }}">
+    <meta property="og:type"
+          content="profile">
+    <meta property="og:url"
+          content="{{ request.build_absolute_uri }}">
+
+    {% if artist.image %}
+        <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ artist.image.url }}">
+    {% endif %}
+    <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "MusicGroup",
+          "name": "{{ artist.name|escapejs }}",
+
+        {% if artist.image %}
+            "image": "{{ request.scheme }}://{{ request.get_host }}{{ artist.image.url }}",
+        {% endif %}
+
+  {% if artist.bio %}
+        "description": "{{ artist.bio|striptags|escapejs }}",
+    {% endif %}
+
+        "url": "{{ request.build_absolute_uri }}"
+}
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="row align-items-center mb-5">
+        <div class="col-lg-3 text-center mb-3 mb-lg-0">
+            {% if artist.image %}
+                <img src="{{ artist.image.url }}" class="artist-image" alt="{{ artist.name }}"
+                     style="max-width: 200px; border-radius: 50%; border: 3px solid #ffc107;" loading="eager"
+                     fetchpriority="high">
+            {% else %}
+                <img src="{% static 'images/default-avatar.png' %}" class="artist-image" alt="{{ artist.name }}"
+                     style="max-width: 200px; border-radius: 50%;" loading="lazy">
+            {% endif %}
+        </div>
+
+        <div class="col-lg-9">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <h1 class="artist-name m-0">{{ artist.name }}</h1>
+                <a href="{% url 'toggle_follow_artist' artist.id %}"
+                   class="btn btn-sm {% if is_following %}btn-outline-danger{% else %}btn-warning{% endif %}">
+                    {% if is_following %} ✓ دنبال می‌کنم {% else %} + دنبال کردن {% endif %}
+                </a>
+            </div>
+
+            <div class="artist-stats mb-3">
+                <span class="me-3">🎵 {{ page_obj.paginator.count }} آهنگ</span>
+                <span>💿 {{ albums.count }} آلبوم</span>
+            </div>
+            <p class="text-secondary">{{ artist.bio|default:"بیوگرافی برای این خواننده ثبت نشده است." }}</p>
+        </div>
+    </div>
+
+    <h3 class="mb-4">آهنگ‌ها</h3>
+    <div class="row mobile-slider mb-5">
+        {% for music in page_obj %}
+            <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-4">
+                <div class="card h-100 shadow-sm music-card">
+                    <a href="{% url 'music_detail' music.id music.slug_en %}">
+                        {% if music.cover %}
+                            <img src="{% thumbnail music.cover 'music_card' %}"
+                                 class="img-fluid music-cover-detail rounded-4 shadow-lg"
+                                 alt="{{ music.title }} - {{ music.artist.name }}"
+                                 loading="lazy">
+                        {% else %}
+                            <img src="{% static 'images/default-cover.jpg' %}"
+                                 class="img-fluid music-cover-detail rounded-4 shadow-lg"
+                                 alt="{{ music.title }} - {{ music.artist.name }}"
+                                 loading="lazy">
+                        {% endif %}
+                    </a>
+                    <button class="play-btn-card"
+                            data-audio-url="{% url 'download_music' music.id %}"
+                            data-title="{{ music.title }}"
+                            data-artist="{{ music.artist.name }}"
+                            data-is-vip="{{ music.is_vip|yesno:'true,false' }}"
+                            data-cover-url="{% if music.cover %}{{ music.cover.url }}{% endif %}">
+                        ▶
+                    </button>
+                    <div class="card-body">
+                        <h5 class="card-title music-title">
+                            <a href="{% url 'music_detail' music.id music.slug_en %}" class="text-decoration-none">
+                                {{ music.title }}
+                            </a>
+                        </h5>
+                        <p class="text-secondary mb-2">
+                            {% if music.artists.exists %}
+                                {% for art in music.artists.all %}
+                                    <a href="{% url 'artist_detail' art.id art.slug_en|default:'artist' %}"
+                                       class="artist-link text-decoration-none">
+                                        {{ art.name }}
+                                    </a>
+                                    {% if not forloop.last %}<span>&</span>{% endif %}
+                                {% endfor %}
+                                <span class="small">🎤</span>
+                            {% elif music.artist %}
+                                <a href="{% url 'artist_detail' music.artist.id music.artist.slug_en|default:'artist' %}"
+                                   class="artist-link text-decoration-none">
+                                    {{ music.artist.name }} 🎤
+                                </a>
+                            {% else %}
+                                <span class="text-muted">ناشناس</span>
+                            {% endif %}
+                        </p>
+                        <p class="text-secondary mb-2">
+                            <a class="artist-link" href="{% url 'genre_musics' music.genre.id music.genre.slug_en %}">
+                                {{ music.genre }}
+                            </a>
+                        </p>
+                        <div class="small text-secondary mb-2">
+                            ❤️ {{ music.likes_count }}
+                            💬 {{ music.comments_count }}
+                            ⬇ {{ music.download_count }}
+                            👁 {{ music.views_count }}
+                        </div>
+                        {% if music.is_vip %}
+                            <span class="badge bg-warning text-dark">VIP</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12"><p class="text-muted small">آهنگی از این خواننده یافت نشد.</p></div>
+        {% endfor %}
+    </div> <h3 class="mt-5 mb-4">آلبوم‌ها</h3>
+    <div class="row mobile-slider mb-5">
+        {% for album in albums %}
+            <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-4">
+                <div class="card music-card h-100">
+                    <a href="{% url 'album_detail' album.id album.slug_en %}">
+                        {% if album.cover %}
+                            <img src="{{ album.cover.url }}" class="img-fluid card-img-top music-cover" alt=""
+                                 loading="lazy">
+                        {% else %}
+                            <img src="{% static 'images/default-cover.jpg' %}"
+                                 class="img-fluid card-img-top music-cover" alt="" loading="lazy">
+                        {% endif %}
+                    </a>
+                    <div class="card-body">
+                        <h5 class="card-title music-title">
+                            <a href="{% url 'album_detail' album.id album.slug_en %}" class="text-decoration-none">
+                                {{ album.title }}
+                            </a>
+                        </h5>
+                        <p class="text-secondary mb-2">
+                            <a href="{% url 'artist_detail' album.artist.id album.artist.slug_en %}"
+                               class="artist-link">
+                                {{ album.artist }} 🎤
+                            </a>
+                        </p>
+                        <p class="text-light-50 small mb-0" style="color: white">
+                            🎵 {{ album.music_set.count }} آهنگ
+                        </p>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12"><p class="text-muted small">آلبومی از این خواننده یافت نشد.</p></div>
+        {% endfor %}
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <nav>
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page=1">اول</a></li>
+                        <li class="page-item"><a class="page-link"
+                                                 href="?page={{ page_obj.previous_page_number }}">قبلی</a></li>
+                    {% endif %}
+                    <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+                    {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">بعدی</a>
+                        </li>
+                        <li class="page-item"><a class="page-link"
+                                                 href="?page={{ page_obj.paginator.num_pages }}">آخر</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+{% endblock %}

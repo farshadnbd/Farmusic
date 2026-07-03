@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <div class="container mt-5">
+
+        <h2 class="mb-4 text-center">
+            خرید اشتراک VIP
+        </h2>
+
+        <div class="row">
+
+            {% for plan in plans %}
+
+                <div class="col-md-4 mb-4">
+
+                    <div class="card h-100 shadow">
+
+                        <div class="card-body text-center">
+
+                            <h4>
+                                {{ plan.title }}
+                            </h4>
+
+                            <hr>
+
+                            <h3 class="text-success">
+                                {{ plan.price }}
+                                تومان
+                            </h3>
+
+                            <p>
+                                مدت اعتبار:
+                                {{ plan.duration_days }}
+                                روز
+                            </p>
+
+                            <a
+                                    href="{% url 'create_payment' plan.id %}"
+                                    class="btn btn-warning">
+
+                                خرید اشتراک
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+{% endblock %}

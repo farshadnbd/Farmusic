@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}ورود کاربران{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card auth-premium-card p-4 p-md-5 rounded-4 shadow-lg text-center">
+                <h2 class="text-white fw-bold mb-4">🔑 ورود به FarMusic</h2>
+
+                <form method="post" class="premium-form text-start text-light mb-4">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+
+                    <button type="submit" class="btn btn-warning w-100 fw-bold py-2.5 rounded-pill shadow-sm mt-3">
+                        🚀 ورود به حساب
+                    </button>
+                </form>
+
+                <div class="pt-2 border-top border-dark">
+                    <a href="{% url 'password_reset' %}" class="text-warning small text-decoration-none">
+                        ❓ رمز عبور را فراموش کرده‌ام
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

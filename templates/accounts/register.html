@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}ثبت نام کاربران{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card auth-premium-card p-4 p-md-5 rounded-4 shadow-lg text-center">
+                <h2 class="text-white fw-bold mb-4">👤 عضویت سریع در سایت</h2>
+
+                <form method="post" class="premium-form text-start text-light mb-3">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+
+                    <button type="submit" class="btn btn-warning w-100 fw-bold py-2.5 rounded-pill shadow-sm mt-3">
+                        ✨ تکمیل ثبت نام و عضویت
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
