@@ -7,5 +7,10 @@
   "django": {
     "pythonVersion": "3.12"
   },
-  "disks": []
+  "disks": [
+    {
+      "name": "farmusic_disk",
+      "mountTo": "media"
+    }
+  ]
 }
