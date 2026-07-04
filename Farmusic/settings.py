@@ -130,7 +130,10 @@ STATICFILES_DIRS = [
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+if os.getenv("LIARA"):
+    MEDIA_ROOT = "/media"
+else:
+    MEDIA_ROOT = BASE_DIR / "media"
 
 # =========================
 # Email

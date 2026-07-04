@@ -47,7 +47,7 @@ def bulk_upload(request):
                 f"اخطار: ژانر آهنگ‌های روبرو یافت نشد (Unknown): [{files_list}]. "
                 f"اگر مایل به آپلود با ژانر Unknown هستید، تیک زرد رنگ پایین را فعال کرده و مجدد دکمه آپلود را بزنید."
             )
-            context = {"artists": Artist.objects.all(),"genres": Genre.objects.all(),}
+            context = {"artists": Artist.objects.all(), "genres": Genre.objects.all(), }
             return render(request, "dashboard/bulk_upload.html", context)
 
         # مرحله دوم: فرآیند آپلود اصلی و تفکیک هنرمندان فیت
@@ -143,10 +143,7 @@ def bulk_upload(request):
                         message=f'{artist.name} آهنگ جدید "{music.title}" را منتشر کرد.',
                         url=reverse(
                             "music_detail",
-                            kwargs={
-                                "pk": music.id,
-                                "slug_en": music.slug_en,
-                            }
+                            kwargs={"pk": music.id, "slug_en": music.slug_en, }
                         )
                     )
                 )

@@ -95,9 +95,9 @@ class Music(models.Model):
         super().save(*args, **kwargs)
 
         # 👇 بعد از ذخیره برای تلگرام (امپورت داخل بدنه شرط برای حل مشکل کرش)
-        # if is_new:
-        #     from music.telegram import send_new_music_to_telegram  # 🟢 اضافه شد
-        #     send_new_music_to_telegram(self)
+        if is_new:
+            from music.telegram import send_new_music_to_telegram  # 🟢 اضافه شد
+            send_new_music_to_telegram(self)
 
 
     @property
