@@ -10,7 +10,7 @@
   "disks": [
     {
       "name": "farmusic_disk",
-      "mountTo": "/usr/src/app/media"
+      "mountTo": "media"
     }
   ]
 }
