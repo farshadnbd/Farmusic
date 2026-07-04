@@ -4,5 +4,8 @@
   "build": {
     "location": "germany"
   },
+  "django": {
+    "pythonVersion": "3.12"
+  },
   "disks": []
 }
