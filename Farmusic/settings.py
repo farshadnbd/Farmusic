@@ -130,6 +130,7 @@ STATICFILES_DIRS = [
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "/media/"
+
 if os.getenv("LIARA"):
     MEDIA_ROOT = "/media"
 else:
