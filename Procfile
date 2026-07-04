@@ -1,0 +1,1 @@
+web: gunicorn Farmusic.wsgi --log-file -
