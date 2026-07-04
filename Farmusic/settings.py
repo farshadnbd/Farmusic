@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
-import os
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -19,9 +19,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = 'django-insecure-9%2&sn_yi+tnwvy@nyxq+mn=^o@kx47j_e0fj!*!xwcalg3z#0'
+
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", "False") == "True"
+DEBUG = True
+
 ALLOWED_HOSTS = ["*"]
 
 # Application definition
@@ -83,13 +85,13 @@ EMAIL_HOST_PASSWORD = 'ylmocaelvifbwspb'
 DEFAULT_FROM_EMAIL = 'Farmusic <farmusicbackups@gmail.com>'
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DB_NAME"),
-        "USER": os.getenv("DB_USER"),
-        "PASSWORD": os.getenv("DB_PASSWORD"),
-        "HOST": os.getenv("DB_HOST"),
-        "PORT": os.getenv("DB_PORT"),
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'farmusic',
+        'USER': 'postgres',
+        'PASSWORD': '1380',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
