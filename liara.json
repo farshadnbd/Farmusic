@@ -9,7 +9,7 @@
   },
   "disks": [
     {
-      "name": "farmusic_disk",
+      "name": "farmusic-disk",
       "mountTo": "media"
     }
   ]
