@@ -18,17 +18,18 @@ def upload_to_ftp_and_clean(instance_id, local_file_path, remote_dir="public_htm
         ftp.connect(settings.FTP_HOST, 21, timeout=30)
         ftp.login(settings.FTP_USER, settings.FTP_PASS)
 
-        # ۲. مدیریت و ورود به پوشه مقصد (حالا داخل public_html/tracks می‌سازد)
+        # ۲. مدیریت و ورود گام‌به‌گام به پوشه مقصد
         path_parts = remote_dir.split('/')
-        current_path = ""
         for part in path_parts:
             if part:
-                current_path = f"{current_path}/{part}" if current_path else part
                 try:
-                    ftp.cwd(current_path)
-                except ftplib.error_perm:
-                    ftp.mkd(current_path)
-                    ftp.cwd(current_path)
+                    ftp.cwd(part)  # وارد پوشه این مرحله می‌شود (مثلاً ابتدا public_html و سپس tracks)
+                except Exception:
+                    try:
+                        ftp.mkd(part)  # اگر وجود نداشت، پوشه را می‌سازد
+                        ftp.cwd(part)  # سپس وارد آن می‌شود
+                    except Exception as e:
+                        print(f"⚠️ Could not create or enter directory '{part}': {e}")
 
         # ۳. آپلود فایل صوتی
         print(f"📤 Uploading {file_name} to host...")
@@ -40,7 +41,7 @@ def upload_to_ftp_and_clean(instance_id, local_file_path, remote_dir="public_htm
         except Exception:
             ftp.close()
 
-        print(f"✅ Successfully uploaded to Plain FTP inside public_html.")
+        print(f"✅ Successfully uploaded to Plain FTP.")
 
         # ۴. تولید URL مستقیم آهنگ با پروتکل http (چون هاست دانلود SSL ندارد)
         # همچنین بخش public_html را از URL حذف می‌کنیم چون این پوشه روت اینترنتی شماست
