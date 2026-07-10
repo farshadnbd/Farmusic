@@ -103,10 +103,11 @@ def music_detail(request, pk, slug_en=None):
         }
     )
 
+
 def download_music(request, pk):
     music = get_object_or_404(Music, pk=pk)
 
-    # بررسی اشتراک VIP برای کاربر
+    # ۱. بررسی اشتراک VIP برای کاربر
     if music.is_vip:
         if not request.user.is_authenticated:
             messages.error(request, 'ابتدا وارد حساب کاربری شوید.')
@@ -121,63 +122,26 @@ def download_music(request, pk):
             messages.error(request, 'برای دانلود اشتراک تهیه کنید.')
             return redirect('buy_subscription')
 
-    # منطق استریم صوتی و مدیریت محدوده بایت‌ها (Range)
-    path = music.file.path
-    range_header = request.META.get('HTTP_RANGE', '').strip()
-    range_match = range_header.startswith('bytes=')
-    size = os.path.getsize(path)
-    content_type, encoding = mimetypes.guess_type(path)
-    content_type = content_type or 'audio/mpeg'
+    # پیدا کردن آدرس فایل
+    file_url = music.audio_url if music.audio_url else (music.file.url if music.file else None)
+    if not file_url:
+        messages.error(request, 'فایل صوتی یافت نشد.')
+        return redirect('home')
 
-    # استخراج نام فایل برای استفاده در دانلود مستقیم
-    filename = os.path.basename(path)
-
-    if range_match:
-        first_byte, last_byte = range_header.replace('bytes=', '').split('-')
-        try:
-            first_byte = int(first_byte) if first_byte else 0
-            last_byte = int(last_byte) if last_byte else size - 1
-        except ValueError:
-            first_byte = 0
-            last_byte = size - 1
-        if last_byte >= size:
-            last_byte = size - 1
-        length = last_byte - first_byte + 1
-
-        def file_iterator(file_name, offset, len_bytes):
-            with open(file_name, 'rb') as f:
-                f.seek(offset)
-                remaining = len_bytes
-                while remaining > 0:
-                    chunk_size = min(16384, remaining)
-                    data = f.read(chunk_size)
-                    if not data:
-                        break
-                    remaining -= len(data)
-                    yield data
-
-        response = StreamingHttpResponse(file_iterator(path, first_byte, length), status=206, content_type=content_type)
-        response['Content-Range'] = f'bytes {first_byte}-{last_byte}/{size}'
-    else:
-        def file_iterator(file_name):
-            with open(file_name, 'rb') as f:
-                while True:
-                    data = f.read(16384)
-                    if not data:
-                        break
-                    yield data
-
-        response = StreamingHttpResponse(file_iterator(path), content_type=content_type)
-        response['Content-Length'] = str(size)
-
-    response['Accept-Ranges'] = 'bytes'
-
+    # ۲. مدیریت آمار دانلود و اجبار به دانلود مستقیم
     if request.GET.get('download') == 'true':
         music.download_count += 1
         music.save(update_fields=['download_count'])
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
 
-    return response
+        # ترفند: اضافه کردن کوری استرینگ برای مجبور کردن بعضی هاست‌های دانلود به دانلود مستقیم
+        # اگر هاست دانلود شما پارامتر دیسپوزیشن را ساپورت کند (مثل ?dl=1 یا ?download=1) آن را اینجا اضافه کنید:
+        # if "?" in file_url:
+        #     file_url += "&dl=1"
+        # else:
+        #     file_url += "?dl=1"
+
+    # ۳. ریدایرکت به هاست دانلود
+    return redirect(file_url)
 
 
 def normalize_search_text(text):
