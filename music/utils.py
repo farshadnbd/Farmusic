@@ -3,7 +3,7 @@ import ftplib
 from django.conf import settings
 
 
-def upload_to_ftp_and_clean(instance_id, local_file_path, remote_dir="tracks"):
+def upload_to_ftp_and_clean(instance_id, local_file_path, remote_dir="public_html/tracks"):
     if not os.path.exists(local_file_path):
         print(f"❌ File not found at: {local_file_path}")
         return False
@@ -14,19 +14,23 @@ def upload_to_ftp_and_clean(instance_id, local_file_path, remote_dir="tracks"):
     try:
         print(f"⚡ Connecting via Plain FTP for Music ID {instance_id}...")
 
-        # 🟢 سوییچ به FTP معمولی و خام بدون لایه دست‌وپاگیر TLS
         ftp = ftplib.FTP()
         ftp.connect(settings.FTP_HOST, 21, timeout=30)
         ftp.login(settings.FTP_USER, settings.FTP_PASS)
 
-        # ۲. مدیریت و ورود به پوشه مقصد
-        try:
-            ftp.cwd(remote_dir)
-        except ftplib.error_perm:
-            ftp.mkd(remote_dir)
-            ftp.cwd(remote_dir)
+        # ۲. مدیریت و ورود به پوشه مقصد (حالا داخل public_html/tracks می‌سازد)
+        path_parts = remote_dir.split('/')
+        current_path = ""
+        for part in path_parts:
+            if part:
+                current_path = f"{current_path}/{part}" if current_path else part
+                try:
+                    ftp.cwd(current_path)
+                except ftplib.error_perm:
+                    ftp.mkd(current_path)
+                    ftp.cwd(current_path)
 
-        # ۳. آپلود باکتریایی فایل صوتی
+        # ۳. آپلود فایل صوتی
         print(f"📤 Uploading {file_name} to host...")
         with open(local_file_path, 'rb') as file_to_upload:
             ftp.storbinary(f"STOR {file_name}", file_to_upload)
@@ -36,12 +40,18 @@ def upload_to_ftp_and_clean(instance_id, local_file_path, remote_dir="tracks"):
         except Exception:
             ftp.close()
 
-        print(f"✅ Successfully uploaded to Plain FTP.")
+        print(f"✅ Successfully uploaded to Plain FTP inside public_html.")
 
-        # ۴. تولید URL مستقیم آهنگ روی هاست دانلود شما
-        download_url = f"https://{settings.FTP_HOST}/{remote_dir}/{file_name}"
+        # ۴. تولید URL مستقیم آهنگ با پروتکل http (چون هاست دانلود SSL ندارد)
+        # همچنین بخش public_html را از URL حذف می‌کنیم چون این پوشه روت اینترنتی شماست
+        url_dir = remote_dir.replace("public_html/", "").replace("public_html", "")
+        if url_dir and not url_dir.startswith("/"):
+            url_dir = f"/{url_dir}"
 
-        # ۵. به‌روزرسانی آدرس صوتی در دیتابیس (بدون تحریک لوپ سیگنال)
+        # تولید آدرس نهایی به صورت http://آدرس_هاست/tracks/name.mp3
+        download_url = f"http://{settings.FTP_HOST}{url_dir}/{file_name}"
+
+        # ۵. به‌روزرسانی آدرس صوتی در دیتابیس
         Music.objects.filter(id=instance_id).update(audio_url=download_url)
 
         # ۶. پاکسازی فایل موقت از روی دیسک اصلی لیارا
