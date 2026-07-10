@@ -1,12 +1,14 @@
 import re
+import threading
+
 from django.shortcuts import render, redirect
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.urls import reverse
-
 from dashboard.utils import extract_cover, extract_metadata, extract_lyrics, generate_album_zip
 from music.models import Music, Album, Artist, Comment, Genre, ArtistFollow
+from music.utils import upload_to_ftp_and_clean  # 👈 امپورت تابع آپلود FTP شما
 from accounts.models import Subscription, Notification
 
 
@@ -107,15 +109,50 @@ def bulk_upload(request):
 
             lyrics = extract_lyrics(mp3_file)
 
-            # ثبت اولیه موزیک با فیلد file (سیگنال در کامیت نهایی به صورت خودکار فعال می‌شود)
-            music = Music.objects.create(title=display_title, artist=artist, genre=genre, album=album, file=mp3_file,
-                                         track_number=track_number, year=year, lyrics=lyrics,
-                                         search_aliases=search_aliases_combined)
+            # ۱. ثبت اولیه موزیک روی دیسک موقت لیارا
+            music = Music.objects.create(
+                title=display_title, artist=artist, genre=genre, album=album, file=mp3_file,
+                track_number=track_number, year=year, lyrics=lyrics,
+                search_aliases=search_aliases_combined
+            )
 
             for name in artist_names:
                 art_obj, _ = Artist.objects.get_or_create(name=name.strip())
                 music.artists.add(art_obj)
 
+            # ۲. استخراج و ذخیره کاور آرت بدون استفاده از update_fields مشکل‌ساز
+            cover = extract_cover(mp3_file)
+            if cover:
+                music.cover.save(cover.name, cover, save=False)
+                if album and created and not album.cover:
+                    cover.seek(0)
+                    album.cover.save(cover.name, cover, save=True)
+
+            # ۳. ذخیره نهایی و کامل آبجکت آهنگ (فایل صوتی و کاور با هم روی دیسک ثبت قطعی می‌شوند)
+            music.save()
+
+            # 🚀 ۴. ارسال مستقیم آهنگ به هاست دانلود با FTP شما در پس‌زمینه (Threading)
+            if music.file and not music.audio_url:
+                local_path = music.file.path
+                music_id = music.id
+
+                def start_ftp_upload(m_id, l_path):
+                    # این تابع دقیقاً متصل به هاست FTP شما میشه و فایل رو منتقل می‌کنه
+                    success = upload_to_ftp_and_clean(m_id, l_path)
+                    if success:
+                        try:
+                            # ارسال موزیک به کانال تلگرام پس از آپلود موفق در هاست دانلود
+                            from music.models import Music as MusicModel
+                            from music.telegram import send_new_music_to_telegram
+                            updated_music = MusicModel.objects.get(id=m_id)
+                            send_new_music_to_telegram(updated_music)
+                        except Exception as telegram_err:
+                            print(f"Telegram automated notification failed: {telegram_err}")
+
+                # اجرای پروسه آپلود FTP بدون معطل کردن فرانت‌اند
+                threading.Thread(target=start_ftp_upload, args=(music_id, local_path)).start()
+
+            # ۵. ارسال نوتیفیکیشن برای کاربران سایت
             followers = ArtistFollow.objects.filter(artist=artist)
             notifications = []
             for follow in followers:
@@ -137,16 +174,7 @@ def bulk_upload(request):
                 album.zip_file = None
                 album.save()
 
-            # 🌟 اصلاح این بخش: ذخیره کاور آرت بدون فراخوانی کل متد save مدل و بدون تحریک سیگنال مجدد
-            cover = extract_cover(mp3_file)
-            if cover:
-                music.cover.save(cover.name, cover, save=False)
-                music.save(update_fields=['cover']) # کاملاً امن و بهینه
-                if album and created and not album.cover:
-                    cover.seek(0)
-                    album.cover.save(cover.name, cover, save=True)
-
-        messages.success(request, f"{len(musics)} آهنگ با موفقیت به همراه تفکیک خوانندگان اضافه شد.")
+        messages.success(request, f"{len(musics)} آهنگ با موفقیت به همراه تفکیک خوانندگان اضافه و فرآیند انتقال به هاست دانلود آغاز شد.")
         return redirect('bulk_upload')
 
     context = {"artists": Artist.objects.all(), "genres": Genre.objects.all(), }
