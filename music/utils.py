@@ -49,8 +49,8 @@ def upload_to_ftp_and_clean(instance_id, local_file_path, remote_dir="public_htm
         if url_dir and not url_dir.startswith("/"):
             url_dir = f"/{url_dir}"
 
-        # تولید آدرس نهایی به صورت http://آدرس_هاست/tracks/name.mp3
-        download_url = f"http://{settings.FTP_HOST}{url_dir}/{file_name}"
+        # اصلاح اصلی: استفاده از DOWNLOAD_BASE_URL به جای FTP_HOST
+        download_url = f"http://{settings.DOWNLOAD_BASE_URL}{url_dir}/{file_name}"
 
         # ۵. به‌روزرسانی آدرس صوتی در دیتابیس
         Music.objects.filter(id=instance_id).update(audio_url=download_url)

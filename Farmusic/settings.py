@@ -216,3 +216,4 @@ ZARINPAL_CALLBACK_URL = f"{SITE_URL}/payments/verify/"
 FTP_HOST = os.environ.get("FTP_HOST", "dl.farmusic.com")
 FTP_USER = os.environ.get("FTP_USER", "farmusic")
 FTP_PASS = os.environ.get("FTP_PASS", "")  # این مقدار را در پنل لیارا ست می‌کنی
+DOWNLOAD_BASE_URL = "3264450084.cloudydl.com"
