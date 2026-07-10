@@ -27,6 +27,8 @@ ALLOWED_HOSTS = [
     "farmusic.liara.run",
     "127.0.0.1",
     "localhost",
+    "farmusic.ir",
+    "www.farmusic.ir",
 ]
 
 # =========================
@@ -161,17 +163,6 @@ DEFAULT_FROM_EMAIL = os.getenv(
 )
 
 # =========================
-# ZarinPal
-# =========================
-
-ZARINPAL_MERCHANT_ID = os.getenv("ZARINPAL_MERCHANT_ID", "")
-
-ZARINPAL_CALLBACK_URL = os.getenv(
-    "ZARINPAL_CALLBACK_URL",
-    "http://127.0.0.1:8000/payments/verify/"
-)
-
-# =========================
 # Easy Thumbnails
 # =========================
 
@@ -218,3 +209,10 @@ SITE_URL = os.getenv(
     "SITE_URL",
     "http://127.0.0.1:8000"
 )
+
+ZARINPAL_MERCHANT_ID = os.getenv("ZARINPAL_MERCHANT_ID", "")
+ZARINPAL_CALLBACK_URL = f"{SITE_URL}/payments/verify/"
+
+FTP_HOST = os.environ.get("FTP_HOST", "dl.farmusic.com")
+FTP_USER = os.environ.get("FTP_USER", "farmusic")
+FTP_PASS = os.environ.get("FTP_PASS", "")  # این مقدار را در پنل لیارا ست می‌کنی

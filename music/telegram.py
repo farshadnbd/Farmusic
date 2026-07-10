@@ -8,12 +8,6 @@ from django.urls import reverse
 from music.models import TelegramFile
 # 🟢 تمامی امپورت‌های جنگو را از بالای صفحه حذف کردیم
 
-# پروکسی مشترک برای تمام درخواست‌های تلگرام
-PROXIES = {
-    "http": "http://127.0.0.1:10809",
-    "https": "http://127.0.0.1:10809",
-}
-
 
 def send_new_music_to_telegram(music):
     """ارسال آهنگ جدید سایت به کانال تلگرام"""

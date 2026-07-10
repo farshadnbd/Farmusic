@@ -1,0 +1,30 @@
+import threading
+from django.db import transaction
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from .models import Music
+from .utils import upload_to_ftp_and_clean
+
+
+@receiver(post_save, sender=Music)
+def trigger_ftp_upload(sender, instance, created, **kwargs):
+    # چک کردن هماهنگ با نام فیلد جدید دیتابیس (instance.file)
+    if instance.file and not instance.audio_url:
+        local_path = instance.file.path
+
+        # اجرای جاب پس‌زمینه سبک با Threading بدون قفل کردن فرانت‌اند
+        def run_in_background():
+            success = upload_to_ftp_and_clean(instance.id, local_path)
+
+            # 🌟 بعد از اینکه فایل با موفقیت به هاست دانلود منتقل شد، حالا نسخه به روز شده را برای تلگرام بفرست
+            if success:
+                # تازه کردن آبجکت از دیتابیس برای گرفتن آدرس جدید audio_url
+                updated_instance = Music.objects.get(id=instance.id)
+                from music.telegram import send_new_music_to_telegram
+                try:
+                    send_new_music_to_telegram(updated_instance)
+                except Exception as telegram_error:
+                    print(f"Telegram automation failed: {telegram_error}")
+
+        # اجرا بلافاصله بعد از نهایی شدن تراکنش پستگرس
+        transaction.on_commit(lambda: threading.Thread(target=run_in_background).start())

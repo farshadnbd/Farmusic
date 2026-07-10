@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
 
+
 def generate_smart_slug(instance, text_field_value, default_prefix):
     if not text_field_value:
         return f"{default_prefix}-{instance.id or 'new'}"
@@ -13,7 +14,7 @@ def generate_smart_slug(instance, text_field_value, default_prefix):
 class Artist(models.Model):
     name = models.CharField(max_length=200)
     slug_en = models.SlugField(max_length=200, blank=True)
-    search_aliases = models.CharField(max_length=100,  blank=True, default="")  # NEW
+    search_aliases = models.CharField(max_length=100, blank=True, default="")
     image = models.ImageField(upload_to='artists/', blank=True, null=True)
     bio = models.TextField(blank=True)
     birth_date = models.DateField(null=True, blank=True)
@@ -35,7 +36,7 @@ class Artist(models.Model):
 class Genre(models.Model):
     name = models.CharField(max_length=100)
     slug_en = models.SlugField(max_length=100, blank=True)
-    search_aliases = models.CharField(max_length=100, blank=True, default="")  # NEW
+    search_aliases = models.CharField(max_length=100, blank=True, default="")
 
     def save(self, *args, **kwargs):
         if not self.slug_en:
@@ -49,7 +50,7 @@ class Genre(models.Model):
 class Album(models.Model):
     title = models.CharField(max_length=200)
     slug_en = models.SlugField(max_length=200, blank=True)
-    search_aliases = models.CharField(max_length=100, blank=True, default="")  # NEW
+    search_aliases = models.CharField(max_length=100, blank=True, default="")
     artist = models.ForeignKey(Artist, on_delete=models.CASCADE)
     cover = models.ImageField(upload_to='albums/', blank=True, null=True)
     zip_file = models.FileField(upload_to='albums_zip/', blank=True, null=True)
@@ -68,12 +69,17 @@ class Album(models.Model):
 class Music(models.Model):
     title = models.CharField(max_length=200)
     slug_en = models.SlugField(max_length=200, blank=True)
-    search_aliases = models.CharField(max_length=100 ,blank=True, default="")  # NEW
+    search_aliases = models.CharField(max_length=100, blank=True, default="")
     artist = models.ForeignKey(Artist, on_delete=models.CASCADE, null=True, blank=True)
     artists = models.ManyToManyField(Artist, related_name='musics', blank=True)
     genre = models.ForeignKey(Genre, on_delete=models.SET_NULL, null=True, blank=True)
     album = models.ForeignKey(Album, on_delete=models.SET_NULL, null=True, blank=True)
+
+    # فایل موقت ابتدا اینجا در دیسک لیارا ذخیره می‌شود
     file = models.FileField(upload_to='musics/')
+    # آدرس نهایی فایل روی هاست دانلود پس از انتقال موفق در اینجا ذخیره می‌شود
+    audio_url = models.URLField(blank=True, null=True, max_length=500)
+
     cover = models.ImageField(upload_to='covers/', blank=True, null=True)
     track_number = models.PositiveIntegerField(null=True, blank=True)
     year = models.CharField(max_length=10, null=True, blank=True)
@@ -84,21 +90,9 @@ class Music(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-
         if not self.slug_en:
             self.slug_en = generate_smart_slug(self, self.title, 'music')
-
-        # 👇 تشخیص جدید بودن
-        is_new = self.pk is None
-
-        # 👇 اول ذخیره کن
         super().save(*args, **kwargs)
-
-        # 👇 بعد از ذخیره برای تلگرام (امپورت داخل بدنه شرط برای حل مشکل کرش)
-        if is_new:
-            from music.telegram import send_new_music_to_telegram  # 🟢 اضافه شد
-            send_new_music_to_telegram(self)
-
 
     @property
     def likes_count(self):
@@ -111,17 +105,21 @@ class Music(models.Model):
     def __str__(self):
         return self.title
 
+
 class TelegramBotState(models.Model):
     last_update_id = models.BigIntegerField(default=0)
 
     def __str__(self):
         return f"Last Update: {self.last_update_id}"
 
+
 class TelegramFile(models.Model):
     file_id = models.CharField(max_length=255, unique=True)
     music = models.OneToOneField(Music, on_delete=models.CASCADE)
+
     def __str__(self):
         return self.music.title
+
 
 class Like(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

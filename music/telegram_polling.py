@@ -5,11 +5,6 @@ from music.models import TelegramFile  # 🟢 اضافه کردن مدل فای�
 
 LAST_UPDATE = 0
 
-PROXIES = {
-    "http": "http://127.0.0.1:10809",
-    "https": "http://127.0.0.1:10809",
-}
-
 def check_updates():
     global LAST_UPDATE
 

@@ -31,7 +31,6 @@ def bulk_upload(request):
         create_album_allowed = request.POST.get("create_album") == "on"
         ignore_unknown_genre = request.POST.get("ignore_unknown_genre") == "on"
 
-        # مرحله اول: بررسی اینکه آیا آهنگی ژانرش Unknown می‌شود یا خیر (کد اصلی خودت)
         unknown_genre_files = []
         if not selected_genre_id or selected_genre_id == "auto":
             for mp3_file in musics:
@@ -50,32 +49,20 @@ def bulk_upload(request):
             context = {"artists": Artist.objects.all(), "genres": Genre.objects.all(), }
             return render(request, "dashboard/bulk_upload.html", context)
 
-        # مرحله دوم: فرآیند آپلود اصلی و تفکیک هنرمندان فیت
         for mp3_file in musics:
             metadata = extract_metadata(mp3_file)
 
-            # ۱. استخراج نام خام هنرمند از متاداده
             raw_artist = metadata.get("artist") or "Unknown Artist"
-
-            # ۲. 🌟 الگوی جدید و همه‌جانبه برای تفکیک (پشتیبانی از کامای فارسی، انگلیسی، &، / و feat)
-            # این الگو هر نوع علامتی را پوشش می‌دهد
             split_pattern = re.compile(r'\s+(?:ft\.?|feat\.?|&|/|and)\s+|[,\u060C]', re.IGNORECASE)
-
-            # تفکیک نام‌ها بر اساس الگوی بالا
             artist_names = [name.strip() for name in split_pattern.split(raw_artist) if name.strip()]
 
-            # اگر لیستی پیدا نشد، مقدار پیش‌فرض قرار داده شود
             if not artist_names:
                 artist_names = ["Unknown Artist"]
 
-            # ۳. تعیین هنرمند اصلی (اولین نام موجود در لیست تفکیک شده)
             main_artist_name = artist_names[0]
             artist, _ = Artist.objects.get_or_create(name=main_artist_name)
-
-            # ۴. ساخت کلمات کلیدی برای سرچ (شامل نام تک‌تک آرتیست‌های تفکیک شده)
             search_aliases_combined = ", ".join(artist_names)
 
-            # ۵. تولید عنوان نمایشی (اضافه کردن خودکار Ft. به عنوان آهنگ در صورت وجود خواننده دوم)
             title = (metadata["title"] or mp3_file.name.replace(".mp3", ""))
             if len(artist_names) > 1:
                 featured_artists_str = ", ".join(artist_names[1:])
@@ -85,7 +72,6 @@ def bulk_upload(request):
 
             album_name = metadata.get("album")
 
-            # ۶. مدیریت ژانر (بدون تغییر)
             if selected_genre_id and selected_genre_id != "auto":
                 try:
                     genre = Genre.objects.get(id=selected_genre_id)
@@ -101,7 +87,6 @@ def bulk_upload(request):
                 else:
                     genre, _ = Genre.objects.get_or_create(name="Unknown")
 
-            # ۷. مدیریت آلبوم
             album = None
             created = False
             if create_album_allowed and album_name:
@@ -122,17 +107,15 @@ def bulk_upload(request):
 
             lyrics = extract_lyrics(mp3_file)
 
-            # ۸. ثبت رسمی موزیک در دیتابیس
+            # ثبت اولیه موزیک با فیلد file (سیگنال در کامیت نهایی به صورت خودکار فعال می‌شود)
             music = Music.objects.create(title=display_title, artist=artist, genre=genre, album=album, file=mp3_file,
                                          track_number=track_number, year=year, lyrics=lyrics,
                                          search_aliases=search_aliases_combined)
 
-            # ۹. 🌟 متصل کردن تک‌تک خواننده‌ها به فیلد ManyToMany
             for name in artist_names:
                 art_obj, _ = Artist.objects.get_or_create(name=name.strip())
-                music.artists.add(art_obj)  # اضافه شدن به جدول واسط برای نمایش در صفحه هر آرتیست
+                music.artists.add(art_obj)
 
-            # ۱۰. ارسال نوتیفیکیشن به فالورهای هنرمند اصلی
             followers = ArtistFollow.objects.filter(artist=artist)
             notifications = []
             for follow in followers:
@@ -154,9 +137,11 @@ def bulk_upload(request):
                 album.zip_file = None
                 album.save()
 
+            # 🌟 اصلاح این بخش: ذخیره کاور آرت بدون فراخوانی کل متد save مدل و بدون تحریک سیگنال مجدد
             cover = extract_cover(mp3_file)
             if cover:
-                music.cover.save(cover.name, cover, save=True)
+                music.cover.save(cover.name, cover, save=False)
+                music.save(update_fields=['cover']) # کاملاً امن و بهینه
                 if album and created and not album.cover:
                     cover.seek(0)
                     album.cover.save(cover.name, cover, save=True)
