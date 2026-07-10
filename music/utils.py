@@ -4,27 +4,19 @@ import ssl
 from django.conf import settings
 
 
-# 🌟 کلاس پچ‌شده فوق‌العاده سبک برای حل تداخل امنیتی و SSL با سرور پارس‌پک
-class PatchedFTP_TLS(ftplib.FTP_TLS):
-    def storbinary(self, cmd, fp, blocksize=8192, callback=None, rest=None):
-        """بازنویسی متد آپلود برای بستن امن لایه SSL به منظور جلوگیری از خطای پروتکل"""
-        self.voidcmd('TYPE I')
-        with self.transfercmd(cmd, rest) as conn:
-            while True:
-                buf = fp.read(blocksize)
-                if not buf:
-                    break
-                conn.sendall(buf)
-                if callback:
-                    callback(buf)
-
-            # 🔐 شگرد اصلی: باز کردن (unwrap) امن لایه SSL قبل از بستن نهایی کانال
-            if isinstance(conn, ssl.SSLSocket):
-                try:
-                    conn.unwrap()
-                except Exception:
-                    pass
-        return self.voidresp()
+# 🌟 کلاس پچ‌شده نهایی و استاندارد برای هاست‌های دانلود ایران (پارس‌پک)
+class FixedFTP_TLS(ftplib.FTP_TLS):
+    def ntransfercmd(self, cmd, rest=None):
+        """مجبور کردن کانال دیتا به استفاده از نشست کانال اصلی (Session Reuse)"""
+        conn, size = ftplib.FTP.ntransfercmd(self, cmd, rest)
+        if self._secure_data_conn:
+            # کپی کردن دقیق نشست SSL کانال اصلی روی کانال دیتا برای جلوگیری از خطای پروتکل
+            conn = self.context.wrap_socket(
+                conn,
+                server_hostname=self.host,
+                session=self.sock.session
+            )
+        return conn, size
 
 
 def upload_to_ftp_and_clean(instance_id, local_file_path, remote_dir="tracks"):
@@ -36,22 +28,24 @@ def upload_to_ftp_and_clean(instance_id, local_file_path, remote_dir="tracks"):
     file_name = os.path.basename(local_file_path)
 
     try:
-        print(f"⚡ Connecting via Secure FTP for Music ID {instance_id}...")
+        print(f"⚡ Connecting via Fixed FTP_TLS for Music ID {instance_id}...")
 
-        # ۱. برقراری اتصال امن با استفاده از کلاس اصلاح‌شده
-        ftp = PatchedFTP_TLS()
+        # ۱. اتصال امن با کلاس پچ‌شده جدید
+        ftp = FixedFTP_TLS()
         ftp.connect(settings.FTP_HOST, 21, timeout=30)
         ftp.login(settings.FTP_USER, settings.FTP_PASS)
-        ftp.prot_p()  # امن‌سازی کانال دیتا
 
-        # ۲. مدیریت و ورود به پوشه مقصد
+        # ۲. فعال‌سازی کانال دیتا به صورت امن
+        ftp.prot_p()
+
+        # ۳. مدیریت پوشه مقصد
         try:
             ftp.cwd(remote_dir)
         except ftplib.error_perm:
             ftp.mkd(remote_dir)
             ftp.cwd(remote_dir)
 
-        # ۳. آپلود باکتریایی فایل صوتی بدون کرش کردن پروتکل
+        # ۴. آپلود فایل
         print(f"📤 Uploading {file_name} to host...")
         with open(local_file_path, 'rb') as file_to_upload:
             ftp.storbinary(f"STOR {file_name}", file_to_upload)
@@ -63,13 +57,13 @@ def upload_to_ftp_and_clean(instance_id, local_file_path, remote_dir="tracks"):
 
         print(f"✅ Successfully uploaded to FTP.")
 
-        # ۴. تولید لینک مستقیم آهنگ روی هاست دانلود شما
+        # ۵. تولید URL مستقیم آهنگ
         download_url = f"https://{settings.FTP_HOST}/{remote_dir}/{file_name}"
 
-        # ۵. به‌روزرسانی آدرس صوتی در دیتابیس (بدون لوپ سیگنال)
+        # ۶. به‌روزرسانی آدرس در دیتابیس
         Music.objects.filter(id=instance_id).update(audio_url=download_url)
 
-        # ۶. پاکسازی فایل موقت از روی دیسک لیارا برای صفر ماندن فضا
+        # ۷. پاکسازی فایل موقت از روی دیسک لیارا
         if os.path.exists(local_file_path):
             os.remove(local_file_path)
             print(f"🗑️ Cleaned up local file from Liara disk.")
