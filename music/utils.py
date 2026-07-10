@@ -4,20 +4,18 @@ from django.conf import settings
 
 
 def upload_to_ftp_and_clean(instance_id, local_file_path, remote_dir="tracks"):
-    """
-    این تابع به صورت مجزا صدا زده می‌شود تا متد save مدل را قفل نکند.
-    """
     if not os.path.exists(local_file_path):
         return False
 
-    from music.models import Music  # برای جلوگیری از Circular Import
+    from music.models import Music
     file_name = os.path.basename(local_file_path)
 
     try:
-        # ۱. اتصال به FTP
-        ftp = ftplib.FTP()
+        # 🟢 تغییر به FTP_TLS برای پشتیبانی از امنیت پارس‌پک
+        ftp = ftplib.FTP_TLS()
         ftp.connect(settings.FTP_HOST, 21, timeout=30)
         ftp.login(settings.FTP_USER, settings.FTP_PASS)
+        ftp.prot_p() # 🟢 حتماً این خط را اضافه کنید تا کانال دیتای فایل هم امن شود
 
         # ۲. مدیریت پوشه مقصد
         try:

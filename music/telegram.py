@@ -6,6 +6,8 @@ from django.core.files.base import ContentFile
 from django.urls import reverse
 
 from music.models import TelegramFile
+
+
 # 🟢 تمامی امپورت‌های جنگو را از بالای صفحه حذف کردیم
 
 
@@ -48,7 +50,8 @@ def send_new_music_to_telegram(music):
         }
 
     try:
-        response = requests.post(url, data=data, files=files, proxies=PROXIES, timeout=15)
+        # بدون پروکسی درخواست بفرستید تا سرور آلمان مستقیم وصل شود
+        response = requests.post(url, data=data, files=files, timeout=15)
         print("Telegram Send Status:", response.status_code)
     except Exception as e:
         print("Telegram Send Error:", e)
@@ -77,7 +80,7 @@ def process_telegram_audio(audio_data):
     try:
         # ۱. گرفتن مسیر فایل از سرور تلگرام
         get_file_url = f"https://api.telegram.org/bot{settings.TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}"
-        file_info_res = requests.get(get_file_url, proxies=PROXIES, timeout=15).json()
+        file_info_res = requests.get(get_file_url, timeout=15).json()
 
         if not file_info_res.get('ok'):
             print("❌ خطا در دریافت اطلاعات فایل از تلگرام:", file_info_res)
@@ -88,7 +91,7 @@ def process_telegram_audio(audio_data):
 
         # ۲. دانلود واقعی فایل صوتی به صورت بایت‌ها
         print(f"📥 در حال دانلود آهنگ از تلگرام: {file_name}")
-        file_content = requests.get(download_url, proxies=PROXIES, timeout=30).content
+        file_content = requests.get(download_url, timeout=30).content
         mp3_file = ContentFile(file_content, name=file_name)
 
         # ۳. استخراج متاداده‌ها
@@ -175,7 +178,7 @@ def process_telegram_audio(audio_data):
                             "pk": music.id,
                             "slug_en": music.slug_en,
                         }
-                    )                )
+                    ))
             )
         Notification.objects.bulk_create(notifications)
 

@@ -16,7 +16,6 @@ def check_updates():
     try:
         response = requests.get(
             url,
-            proxies=PROXIES,
             timeout=20
         ).json()
 
