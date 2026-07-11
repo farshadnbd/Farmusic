@@ -252,67 +252,82 @@
 
     <hr class="my-5" style="border-color: #333;">
 
-    <!-- بخش آهنگ‌های مرتبط (به بالا منتقل شد) -->
+    <!-- بخش آهنگ‌های مرتبط (اصلاح شده و شبیه کارت‌های Home) -->
     <h3 class="mb-4">🎵 آهنگ‌های مرتبط</h3>
     <div class="row mobile-slider mb-5">
         {% for item in related_musics %}
             <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-4">
-                <div class="card h-100 shadow-sm music-card">
-                    <a href="{% url 'music_detail' item.id item.slug_en %}">
-                        {% if item.cover %}
-                            <img src="{% thumbnail item.cover 'music_card' %}"
-                                 class="card-img-top music-cover"
-                                 alt="دانلود آهنگ {{ item.title }} از {% if item.artists.exists %}{% for art in item.artists.all %}{{ art.name }} {% endfor %}{% else %}{{ item.artist.name }}{% endif %}"
-                                 loading="lazy">
-                        {% else %}
-                            <img src="{% static 'images/default-cover.jpg' %}"
-                                 class="card-img-top music-cover"
-                                 alt="دانلود آهنگ {{ item.title }}"
-                                 loading="lazy">
-                        {% endif %}
-                    </a>
-                <button class="play-btn-card"
-                            data-audio-url="{% url 'download_music' music.id %}"
-                            data-title="{{ music.title }}"
-                            data-artist="{{ music.artist.name }}"
-                            data-is-vip="{{ music.is_vip|yesno:'true,false' }}"
-                            data-cover-url="{% if music.cover %}{{ music.cover.url }}{% endif %}">
-                        ▶
-                    </button>
+                <div class="card h-100 shadow-sm music-card music-card-custom">
+
+                    <div class="position-relative music-cover-wrapper">
+                        <a href="{% url 'music_detail' item.id item.slug_en|default:'music' %}">
+                            {% if item.cover %}
+                                <img src="{% thumbnail item.cover 'music_card' %}"
+                                     class="img-fluid music-cover-detail rounded-4 shadow-lg w-100"
+                                     alt="دانلود آهنگ {{ item.title }} از {% if item.artists.exists %}{% for art in item.artists.all %}{{ art.name }} {% endfor %}{% else %}{{ item.artist.name }}{% endif %}"
+                                     loading="lazy">
+                            {% else %}
+                                <img src="{% static 'images/default-cover.jpg' %}"
+                                     class="img-fluid music-cover-detail rounded-4 shadow-lg w-100"
+                                     alt="دانلود آهنگ {{ item.title }}"
+                                     loading="lazy">
+                            {% endif %}
+                        </a>
+
+                        <!-- حل باگ آدرس‌دهی پلیر: تمامی مشخصات از متغیر حلقه (item) خوانده می‌شوند -->
+                        <button class="play-btn-card"
+                                data-audio-url="{% url 'download_music' item.id %}"
+                                data-title="{{ item.title }}"
+                                data-artist="{% if item.artists.exists %}{% for art in item.artists.all %}{{ art.name }}{% if not forloop.last %} & {% endif %}{% endfor %}{% else %}{{ item.artist.name }}{% endif %}"
+                                data-is-vip="{{ item.is_vip|yesno:'true,false' }}"
+                                data-cover-url="{% if item.cover %}{{ item.cover.url }}{% endif %}">
+                            ▶
+                        </button>
+                    </div>
+
                     <div class="card-body">
                         <h5 class="card-title music-title">
-                            <a href="{% url 'music_detail' item.id item.slug_en %}" class="text-decoration-none">
+                            <a href="{% url 'music_detail' item.id item.slug_en|default:'music' %}" class="text-decoration-none">
                                 {{ item.title }}
                             </a>
                         </h5>
                         <p class="text-secondary mb-2">
                             {% if item.artists.exists %}
                                 {% for art in item.artists.all %}
-                                    <a href="{% url 'artist_detail' art.id art.slug_en %}"
+                                    <a href="{% url 'artist_detail' art.id art.slug_en|default:'artist' %}"
                                        class="artist-link text-decoration-none small">
                                         {{ art.name }}
                                     </a>
                                     {% if not forloop.last %}<span class="text-muted small">&</span>{% endif %}
                                 {% endfor %}
-                            {% else %}
-                                <a href="{% url 'artist_detail' item.artist.id item.artist.slug_en %}"
+                                <span class="small">🎤</span>
+                            {% elif item.artist %}
+                                <a href="{% url 'artist_detail' item.artist.id item.artist.slug_en|default:'artist' %}"
                                    class="artist-link text-decoration-none small">
-                                    {{ item.artist.name }}
+                                    {{ item.artist.name }} 🎤
                                 </a>
+                            {% else %}
+                                <span class="text-muted">ناشناس</span>
                             {% endif %}
-                            <span class="small">🎤</span>
                         </p>
                         <p class="text-secondary mb-2">
-                            <a class="artist-link" href="{% url 'genre_musics' item.genre.id item.genre.slug_en %}">
-                                {{ item.genre }}
-                            </a>
+                            {% if item.genre %}
+                                <a class="artist-link small" href="{% url 'genre_musics' item.genre.id item.genre.slug_en|default:'genre' %}">
+                                    {{ item.genre.name }} 🏷️
+                                </a>
+                            {% else %}
+                                <span class="text-muted small">بدون ژانر</span>
+                            {% endif %}
                         </p>
                         <div class="small opacity-75">
                             ❤️ {{ item.likes_count }}
-                            ?? {{ item.comments_count }}
+                            💬 {{ item.comments_count }}
                             ⬇ {{ item.download_count }}
                             👁 {{ item.views_count }}
                         </div>
+                        {% if item.is_vip %}
+                            <span class="badge bg-warning">VIP</span>
+                        {% endif %}
                     </div>
                 </div>
             </div>
