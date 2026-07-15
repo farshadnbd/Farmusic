@@ -205,10 +205,7 @@ TELEGRAM_CHAT_ID = os.getenv(
     "-1004448617534"
 )
 
-SITE_URL = os.getenv(
-    "SITE_URL",
-    "http://127.0.0.1:8000"
-)
+SITE_URL = os.getenv("SITE_URL", "https://farmusic.ir").rstrip("/")
 
 ZARINPAL_MERCHANT_ID = os.getenv("ZARINPAL_MERCHANT_ID", "")
 ZARINPAL_CALLBACK_URL = f"{SITE_URL}/payments/verify/"

@@ -31,6 +31,8 @@ def create_payment(request, plan_id):
     print("STATUS:", response.status_code)
     print("TEXT:", response.text)
     print("JSON:", result)
+    print("CALLBACK:", settings.ZARINPAL_CALLBACK_URL)
+    print("MERCHANT:", settings.ZARINPAL_MERCHANT_ID)
 
     if ("data" in result and result["data"]["code"] == 100
     ):
