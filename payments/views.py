@@ -28,6 +28,9 @@ def create_payment(request, plan_id):
     )
 
     result = response.json()
+    print("STATUS:", response.status_code)
+    print("TEXT:", response.text)
+    print("JSON:", result)
 
     if ("data" in result and result["data"]["code"] == 100
     ):
