@@ -214,3 +214,4 @@ FTP_HOST = os.environ.get("FTP_HOST", "dl.farmusic.com")
 FTP_USER = os.environ.get("FTP_USER", "farmusic")
 FTP_PASS = os.environ.get("FTP_PASS", "")  # این مقدار را در پنل لیارا ست می‌کنی
 DOWNLOAD_BASE_URL = "dl.farmusic.ir"
+TELEGRAM_API_BASE = os.environ.get("TELEGRAM_API_BASE", "https://tapi.b612.me")

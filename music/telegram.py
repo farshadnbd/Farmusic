@@ -4,15 +4,10 @@ import requests
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.urls import reverse
-
 from music.models import TelegramFile
 
-
-# 🟢 تمامی امپورت‌های جنگو را از بالای صفحه حذف کردیم
-
-
 def send_new_music_to_telegram(music):
-    """ارسال آهنگ جدید سایت به کانال تلگرام"""
+    """ارسال آهنگ جدید سایت به کانال تلگرام با استفاده از پروکسی"""
     music_url = f"{settings.SITE_URL}/music/{music.id}/{music.slug_en}/"
 
     caption = (
@@ -25,8 +20,11 @@ def send_new_music_to_telegram(music):
     files = None
     photo_file = None
 
+    # 🟢 گرفتن آدرس پروکسی از تنظیمات
+    api_base = getattr(settings, 'TELEGRAM_API_BASE', 'https://api.telegram.org')
+
     if music.cover and hasattr(music.cover, 'path'):
-        url = f"https://api.telegram.org/bot{settings.TELEGRAM_BOT_TOKEN}/sendPhoto"
+        url = f"{api_base}/bot{settings.TELEGRAM_BOT_TOKEN}/sendPhoto"
         data = {
             "chat_id": settings.TELEGRAM_CHAT_ID,
             "caption": caption,
@@ -38,20 +36,15 @@ def send_new_music_to_telegram(music):
             files = {"photo": photo_file}
         except Exception as e:
             print("Cover file open error:", e)
-            url = f"https://api.telegram.org/bot{settings.TELEGRAM_BOT_TOKEN}/sendMessage"
+            url = f"{api_base}/bot{settings.TELEGRAM_BOT_TOKEN}/sendMessage"
             data = {"chat_id": settings.TELEGRAM_CHAT_ID, "text": caption, "parse_mode": "HTML"}
     else:
-        url = f"https://api.telegram.org/bot{settings.TELEGRAM_BOT_TOKEN}/sendMessage"
-        data = {
-            "chat_id": settings.TELEGRAM_CHAT_ID,
-            "text": caption,
-            "parse_mode": "HTML",
-            "disable_web_page_preview": False
-        }
+        url = f"{api_base}/bot{settings.TELEGRAM_BOT_TOKEN}/sendMessage"
+        data = {"chat_id": settings.TELEGRAM_CHAT_ID, "text": caption, "parse_mode": "HTML",
+                "disable_web_page_preview": False}
 
     try:
-        # بدون پروکسی درخواست بفرستید تا سرور آلمان مستقیم وصل شود
-        response = requests.post(url, data=data, files=files, timeout=15)
+        response = requests.post(url, data=data, files=files, timeout=20)
         print("Telegram Send Status:", response.status_code)
     except Exception as e:
         print("Telegram Send Error:", e)
@@ -61,12 +54,13 @@ def send_new_music_to_telegram(music):
 
 
 def process_telegram_audio(audio_data):
-    """دریافت فایل صوتی از تلگرام، استخراج اطلاعات و ذخیره در جنگو"""
+    """دریافت فایل صوتی از تلگرام با پروکسی، استخراج اطلاعات، ذخیره در جنگو و آپلود به هاست دانلود"""
 
-    # 🔥 دوقلو کردن امپورت‌ها داخل تابع برای جلوگیری از کرش و Circular Import
+    # ایمپورت‌های داخلی برای جلوگیری از تداخل و Circular Import
     from music.models import Music, Album, Artist, Genre, ArtistFollow
     from accounts.models import Notification
     from dashboard.utils import extract_cover, extract_metadata, extract_lyrics
+    from music.utils import upload_to_ftp_and_clean  # 👈 اصلاح آدرس ایمپورت به music.utils
 
     file_id = audio_data.get('file_id')
     if TelegramFile.objects.filter(file_id=file_id).exists():
@@ -77,9 +71,12 @@ def process_telegram_audio(audio_data):
     if not file_name.endswith('.mp3'):
         file_name += '.mp3'
 
+    # 🟢 گرفتن آدرس پروکسی از تنظیمات
+    api_base = getattr(settings, 'TELEGRAM_API_BASE', 'https://api.telegram.org')
+
     try:
-        # ۱. گرفتن مسیر فایل از سرور تلگرام
-        get_file_url = f"https://api.telegram.org/bot{settings.TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}"
+        # ۱. گرفتن مسیر فایل از سرور تلگرام با استفاده از پروکسی
+        get_file_url = f"{api_base}/bot{settings.TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}"
         file_info_res = requests.get(get_file_url, timeout=15).json()
 
         if not file_info_res.get('ok'):
@@ -87,11 +84,13 @@ def process_telegram_audio(audio_data):
             return False
 
         file_path = file_info_res['result']['file_path']
-        download_url = f"https://api.telegram.org/file/bot{settings.TELEGRAM_BOT_TOKEN}/{file_path}"
 
-        # ۲. دانلود واقعی فایل صوتی به صورت بایت‌ها
-        print(f"📥 در حال دانلود آهنگ از تلگرام: {file_name}")
-        file_content = requests.get(download_url, timeout=30).content
+        # 🟢 دانلود از طریق دامنه پروکسی
+        download_url = f"{api_base}/file/bot{settings.TELEGRAM_BOT_TOKEN}/{file_path}"
+
+        # ۲. دانلود بایت‌های فایل صوتی
+        print(f"📥 در حال دانلود آهنگ از تلگرام (پروکسی): {file_name}")
+        file_content = requests.get(download_url, timeout=45).content
         mp3_file = ContentFile(file_content, name=file_name)
 
         # ۳. استخراج متاداده‌ها
@@ -99,7 +98,7 @@ def process_telegram_audio(audio_data):
         raw_artist = metadata.get("artist") or audio_data.get("performer") or "Unknown Artist"
         title = metadata.get("title") or audio_data.get("title") or file_name.replace(".mp3", "")
 
-        # ۴. تفکیک هوشمند خواننده‌ها
+        # ۴. تفکیک خواننده‌ها
         split_pattern = re.compile(r'\s+(?:ft\.?|feat\.?|&|/|and)\s+|[,\u060C]', re.IGNORECASE)
         artist_names = [name.strip() for name in split_pattern.split(raw_artist) if name.strip()]
 
@@ -145,7 +144,7 @@ def process_telegram_audio(audio_data):
 
         lyrics = extract_lyrics(mp3_file)
 
-        # ۷. ذخیره نهایی آهنگ در دیتابیس جنگو
+        # ۷. ذخیره موقت آهنگ در دیتابیس جنگو
         music = Music.objects.create(
             title=display_title,
             artist=artist,
@@ -190,12 +189,20 @@ def process_telegram_audio(audio_data):
                 cover.seek(0)
                 album.cover.save(cover.name, cover, save=True)
 
-        TelegramFile.objects.create(
-            file_id=file_id,
-            music=music
-        )
+        # ۱۱. ثبت شناسه تلگرام برای جلوگیری از پردازش تکراری
+        TelegramFile.objects.create(file_id=file_id, music=music)
 
-        print(f"✅ آهنگ '{display_title}' با موفقیت از تلگرام دریافت و ذخیره شد.")
+        # ۱۲. آپلود مستقیم به هاست دانلود و پاکسازی فایل محلی از سرور اصلی
+        if music.file and os.path.exists(music.file.path):
+            local_file_path = music.file.path
+            print(f"🚀 شروع انتقال فایل تلگرامی با شناسه {music.id} به هاست دانلود...")
+            upload_to_ftp_and_clean(
+                instance_id=music.id,
+                local_file_path=local_file_path,
+                remote_dir="public_html/tracks"
+            )
+
+        print(f"✅ آهنگ '{display_title}' با موفقیت پردازش و به هاست دانلود منتقل شد.")
         return True
 
     except Exception as e:
