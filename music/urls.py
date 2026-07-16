@@ -42,7 +42,7 @@ urlpatterns = [
     path('playlist/<int:playlist_id>/delete/', delete_playlist, name='delete_playlist'),
     path('playlist/<int:playlist_id>/edit/', edit_playlist, name='edit_playlist'),
     path('comment/<int:comment_id>/report/', report_comment, name='report_comment'),
-    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
+    path('sitemap-main.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
     path('robots.txt', robots_txt, name='robots_txt'),
     path('telegram-webhook-secret-99/', bot_views.telegram_webhook, name='telegram_webhook'),
 ]
