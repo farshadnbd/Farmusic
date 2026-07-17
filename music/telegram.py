@@ -6,6 +6,7 @@ from django.core.files.base import ContentFile
 from django.urls import reverse
 from music.models import TelegramFile
 
+
 def send_new_music_to_telegram(music):
     """ارسال آهنگ جدید سایت به کانال تلگرام با استفاده از پروکسی"""
     music_url = f"{settings.SITE_URL}/music/{music.id}/{music.slug_en}/"
@@ -196,11 +197,8 @@ def process_telegram_audio(audio_data):
         if music.file and os.path.exists(music.file.path):
             local_file_path = music.file.path
             print(f"🚀 شروع انتقال فایل تلگرامی با شناسه {music.id} به هاست دانلود...")
-            upload_to_ftp_and_clean(
-                instance_id=music.id,
-                local_file_path=local_file_path,
-                remote_dir="public_html/tracks"
-            )
+            upload_to_ftp_and_clean(instance_id=music.id, local_file_path=local_file_path,
+                                    remote_dir="public_html/tracks")
 
         print(f"✅ آهنگ '{display_title}' با موفقیت پردازش و به هاست دانلود منتقل شد.")
         return True
