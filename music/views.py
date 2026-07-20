@@ -14,6 +14,7 @@ import mimetypes
 from django.http import StreamingHttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+import json
 
 def home(request):
     musics = Music.objects.select_related('artist', 'genre', 'album').order_by('-created_at')
@@ -722,11 +723,20 @@ def import_music(request):
         data = json.loads(request.body)
 
         if data.get("secret") != SECRET:
-            return JsonResponse({"error": "unauthorized"}, status=403)
+            return JsonResponse(
+                {"error": "unauthorized"},
+                status=403
+            )
 
         artist, _ = Artist.objects.get_or_create(
             name=data["artist"]
         )
+
+        genre = None
+        if data.get("genre"):
+            genre, _ = Genre.objects.get_or_create(
+                name=data["genre"]
+            )
 
         album = None
         if data.get("album"):
@@ -735,21 +745,16 @@ def import_music(request):
                 artist=artist
             )
 
-        genre = None
-        if data.get("genre"):
-            genre, _ = Genre.objects.get_or_create(
-                name=data["genre"]
-            )
-
         music = Music.objects.create(
             title=data["title"],
+
             artist=artist,
             album=album,
             genre=genre,
 
             audio_url=data["audio_url"],
 
-            lyrics=data.get("lyrics", ""),
+            lyrics=data.get("lyrics") or "",
             year=data.get("year"),
             track_number=data.get("track_number"),
         )
