@@ -747,13 +747,11 @@ def import_music(request):
 
         music = Music.objects.create(
             title=data["title"],
-
             artist=artist,
             album=album,
             genre=genre,
-
             audio_url=data["audio_url"],
-
+            file="placeholder.mp3",
             lyrics=data.get("lyrics") or "",
             year=data.get("year"),
             track_number=data.get("track_number"),
