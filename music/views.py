@@ -12,7 +12,8 @@ from django.http import JsonResponse, FileResponse, HttpResponse
 import os
 import mimetypes
 from django.http import StreamingHttpResponse
-
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
 def home(request):
     musics = Music.objects.select_related('artist', 'genre', 'album').order_by('-created_at')
@@ -710,3 +711,56 @@ def robots_txt(request):
         f"Sitemap: {sitemap_url}",
     ]
     return HttpResponse("\n".join(lines), content_type="text/plain")
+
+SECRET = "farmusic-secret"
+
+
+@csrf_exempt
+@require_POST
+def import_music(request):
+    try:
+        data = json.loads(request.body)
+
+        if data.get("secret") != SECRET:
+            return JsonResponse({"error": "unauthorized"}, status=403)
+
+        artist, _ = Artist.objects.get_or_create(
+            name=data["artist"]
+        )
+
+        album = None
+        if data.get("album"):
+            album, _ = Album.objects.get_or_create(
+                title=data["album"],
+                artist=artist
+            )
+
+        genre = None
+        if data.get("genre"):
+            genre, _ = Genre.objects.get_or_create(
+                name=data["genre"]
+            )
+
+        music = Music.objects.create(
+            title=data["title"],
+            artist=artist,
+            album=album,
+            genre=genre,
+
+            audio_url=data["audio_url"],
+
+            lyrics=data.get("lyrics", ""),
+            year=data.get("year"),
+            track_number=data.get("track_number"),
+        )
+
+        return JsonResponse({
+            "ok": True,
+            "music_id": music.id
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            "ok": False,
+            "error": str(e)
+        }, status=500)

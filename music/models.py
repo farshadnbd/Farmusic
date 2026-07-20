@@ -74,7 +74,6 @@ class Music(models.Model):
     artists = models.ManyToManyField(Artist, related_name='musics', blank=True)
     genre = models.ForeignKey(Genre, on_delete=models.SET_NULL, null=True, blank=True)
     album = models.ForeignKey(Album, on_delete=models.SET_NULL, null=True, blank=True)
-
     # فایل موقت ابتدا اینجا در دیسک لیارا ذخیره می‌شود
     file = models.FileField(upload_to='musics/')
     # آدرس نهایی فایل روی هاست دانلود پس از انتقال موفق در اینجا ذخیره می‌شود
