@@ -53,7 +53,9 @@ class Album(models.Model):
     search_aliases = models.CharField(max_length=100, blank=True, default="")
     artist = models.ForeignKey(Artist, on_delete=models.CASCADE)
     cover = models.ImageField(upload_to='albums/', blank=True, null=True)
+    cover_url = models.URLField(max_length=500, blank=True, null=True)  # 👈 جدید
     zip_file = models.FileField(upload_to='albums_zip/', blank=True, null=True)
+    zip_url = models.URLField(max_length=500, blank=True, null=True)  # 👈 اگر بعداً فایل ZIP هم روی هاست دانلود باشد
     release_date = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

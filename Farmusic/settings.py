@@ -16,20 +16,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Security
 # =========================
 
-SECRET_KEY = os.getenv(
-    "SECRET_KEY",
-    "django-insecure-9%2&sn_yi+tnwvy@nyxq+mn=^o@kx47j_e0fj!*!xwcalg3z#0"
-)
-
+SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-9%2&sn_yi+tnwvy@nyxq+mn=^o@kx47j_e0fj!*!xwcalg3z#0")
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
-
-ALLOWED_HOSTS = [
-    "farmusic.liara.run",
-    "127.0.0.1",
-    "localhost",
-    "farmusic.ir",
-    "www.farmusic.ir",
-]
+ALLOWED_HOSTS = ["farmusic.liara.run", "127.0.0.1", "localhost", "farmusic.ir", "www.farmusic.ir", ]
 
 # =========================
 # Applications
@@ -98,7 +87,7 @@ DATABASES = {"default": dj_database_url.config(default=os.getenv("DATABASE_URL")
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-        'OPTIONS': {'min_length': 4,}
+        'OPTIONS': {'min_length': 4, }
     },
 ]
 

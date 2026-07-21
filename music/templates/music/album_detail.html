@@ -55,7 +55,13 @@
 
                     <!-- کاور آلبوم در سمت راست قرار می‌گیرد -->
                     <div class="col-md-auto col-12 text-center">
-                        {% if album.cover %}
+                        {% if album.cover_url %}
+                            <img src="{{ album.cover_url }}"
+                                 class="img-fluid rounded-3 shadow"
+                                 alt="{{ album.title }} - {{ album.artist.name }}"
+                                 style="max-height: 150px; width: 150px; object-fit: cover;"
+                                 loading="lazy">
+                        {% elif album.cover %}
                             <img src="{% thumbnail album.cover 'album_cover' %}"
                                  class="img-fluid rounded-3 shadow"
                                  alt="{{ album.title }} - {{ album.artist.name }}"

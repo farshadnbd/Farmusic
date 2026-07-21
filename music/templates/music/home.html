@@ -97,29 +97,28 @@
                 <div class="card h-100 shadow-sm music-card music-card-custom">
 
                     <div class="position-relative music-cover-wrapper">
-                        <a href="{% url 'music_detail' music.id music.slug_en|default:'music' %}">
-                            {% if music.cover %}
-                                <img src="{% thumbnail music.cover 'music_card' %}"
-                                     class="img-fluid music-cover-detail rounded-4 shadow-lg w-100"
-                                     alt="{{ music.title }} - {{ music.artist.name }}" loading="lazy">
-                            {% elif music.cover_url %}
-                                <img src="{{ music.cover_url }}"
-                                     class="img-fluid music-cover-detail rounded-4 shadow-lg w-100"
-                                     alt="{{ music.title }} - {{ music.artist.name }}" loading="lazy">
-                            {% else %}
-                                <img src="{% static 'images/default-cover.jpg' %}"
-                                     class="img-fluid music-cover-detail rounded-4 shadow-lg w-100"
-                                     alt="{{ music.title }} - {{ music.artist.name }}" loading="lazy">
-                            {% endif %}
-                        </a>
+                        {% if music.cover_url %}
+                            <img src="{{ music.cover_url }}"
+                                 class="img-fluid music-cover-detail rounded-4 shadow-lg w-100"
+                                 alt="{{ music.title }} - {{ music.artist.name }}" loading="lazy">
+                        {% elif music.cover %}
+                            <img src="{% thumbnail music.cover 'music_card' %}"
+                                 class="img-fluid music-cover-detail rounded-4 shadow-lg w-100"
+                                 alt="{{ music.title }} - {{ music.artist.name }}" loading="lazy">
+                        {% else %}
+                            <img src="{% static 'images/default-cover.jpg' %}"
+                                 class="img-fluid music-cover-detail rounded-4 shadow-lg w-100"
+                                 alt="{{ music.title }} - {{ music.artist.name }}" loading="lazy">
+                        {% endif %}
 
                         <button class="play-btn-card"
                                 data-audio-url="{% url 'download_music' music.id %}"
                                 data-title="{{ music.title }}"
                                 data-artist="{{ music.artist.name }}"
                                 data-is-vip="{{ music.is_vip|yesno:'true,false' }}"
-                                data-cover-url="
-                                        {% if music.cover %}{% thumbnail music.cover 'music_card' %}{% endif %}"> ▶
+                                data-cover-url="{% if music.cover_url %}{{ music.cover_url }}
+                                                {% elif music.cover %}{% thumbnail music.cover 'music_card' %}
+                                                {% else %}{% static 'images/default-cover.jpg' %}{% endif %}">
                         </button>
                     </div>
 
@@ -181,7 +180,11 @@
             <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-4">
                 <div class="card music-card h-100">
                     <a href="{% url 'album_detail' album.id album.slug_en|default:'album' %}">
-                        {% if album.cover %}
+                        {% if album.cover_url %}
+                            <img src="{{ album.cover_url }}"
+                                 class="img-fluid music-cover-detail rounded-4 shadow-lg"
+                                 alt="{{ album.title }} - {{ album.artist.name }}" loading="lazy">
+                        {% elif album.cover %}
                             <img src="{% thumbnail album.cover 'music_card' %}"
                                  class="img-fluid music-cover-detail rounded-4 shadow-lg"
                                  alt="{{ album.title }} - {{ album.artist.name }}" loading="lazy">
