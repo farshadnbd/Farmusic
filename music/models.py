@@ -80,6 +80,7 @@ class Music(models.Model):
     audio_url = models.URLField(blank=True, null=True, max_length=500)
 
     cover = models.ImageField(upload_to='covers/', blank=True, null=True)
+    cover_url = models.URLField(blank=True, null=True, max_length=500)
     track_number = models.PositiveIntegerField(null=True, blank=True)
     year = models.CharField(max_length=10, null=True, blank=True)
     lyrics = models.TextField(blank=True, null=True)

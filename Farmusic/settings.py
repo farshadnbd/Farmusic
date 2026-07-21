@@ -89,11 +89,7 @@ WSGI_APPLICATION = 'Farmusic.wsgi.application'
 # Database
 # =========================
 
-DATABASES = {
-    "default": dj_database_url.config(
-        default=os.getenv("DATABASE_URL")
-    )
-}
+DATABASES = {"default": dj_database_url.config(default=os.getenv("DATABASE_URL"))}
 
 # =========================
 # Password validation
@@ -102,9 +98,7 @@ DATABASES = {
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-        'OPTIONS': {
-            'min_length': 4,
-        }
+        'OPTIONS': {'min_length': 4,}
     },
 ]
 
@@ -113,9 +107,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # =========================
 
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'Asia/Tehran'
-
 USE_I18N = True
 USE_TZ = True
 
@@ -124,13 +116,8 @@ USE_TZ = True
 # =========================
 
 STATIC_URL = "/static/"
-
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
-
+STATICFILES_DIRS = [BASE_DIR / "static", ]
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
 MEDIA_URL = "/media/"
 
 if os.getenv("LIARA"):
@@ -146,64 +133,26 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-
-EMAIL_HOST_USER = os.getenv(
-    "EMAIL_HOST_USER",
-    "farmusicbackups@gmail.com"
-)
-
-EMAIL_HOST_PASSWORD = os.getenv(
-    "EMAIL_HOST_PASSWORD",
-    "ylmocaelvifbwspb"
-)
-
-DEFAULT_FROM_EMAIL = os.getenv(
-    "DEFAULT_FROM_EMAIL",
-    "Farmusic <farmusicbackups@gmail.com>"
-)
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "farmusicbackups@gmail.com")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "ylmocaelvifbwspb")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "Farmusic <farmusicbackups@gmail.com>")
 
 # =========================
 # Easy Thumbnails
 # =========================
 
-THUMBNAIL_ALIASES = {
-    "": {
-        "music_card": {
-            "size": (400, 400),
-            "crop": True,
-            "quality": 85,
-        },
-        "music_detail": {
-            "size": (700, 700),
-            "crop": True,
-            "quality": 90,
-        },
-        "artist_avatar": {
-            "size": (300, 300),
-            "crop": True,
-            "quality": 90,
-        },
-        "album_cover": {
-            "size": (500, 500),
-            "crop": True,
-            "quality": 88,
-        },
-    }
-}
+THUMBNAIL_ALIASES = {"": {"music_card": {"size": (400, 400), "crop": True, "quality": 85, },
+                          "music_detail": {"size": (700, 700), "crop": True, "quality": 90, },
+                          "artist_avatar": {"size": (300, 300), "crop": True, "quality": 90, },
+                          "album_cover": {"size": (500, 500), "crop": True, "quality": 88, }, }}
 
 # =========================
 # Telegram
 # =========================
 
-TELEGRAM_BOT_TOKEN = os.getenv(
-    "TELEGRAM_BOT_TOKEN",
-    "8371153857:AAF3YWVelognCWjb5blJpI3cXp4sLOyv6PQ"
-)
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8371153857:AAF3YWVelognCWjb5blJpI3cXp4sLOyv6PQ")
 
-TELEGRAM_CHAT_ID = os.getenv(
-    "TELEGRAM_CHAT_ID",
-    "-1004448617534"
-)
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "-1004448617534")
 
 SITE_URL = os.getenv("SITE_URL", "https://farmusic.ir").rstrip("/")
 

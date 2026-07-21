@@ -16,6 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 import json
 
+
 def home(request):
     musics = Music.objects.select_related('artist', 'genre', 'album').order_by('-created_at')
     music_count = Music.objects.count()
@@ -42,7 +43,8 @@ def home(request):
         request,
         'music/home.html',
         {'musics': musics, 'music_count': music_count, 'artist_count': artist_count, 'genre_count': genre_count,
-         'total_downloads': total_downloads, 'page_obj': page_obj, 'latest_albums': latest_albums, "user_has_vip": user_has_vip, })
+         'total_downloads': total_downloads, 'page_obj': page_obj, 'latest_albums': latest_albums,
+         "user_has_vip": user_has_vip, })
 
 
 def music_detail(request, pk, slug_en=None):
@@ -263,6 +265,7 @@ def popular_musics(request):
         'user_has_vip': user_has_vip  # 👈 اضافه شد
     })
 
+
 def artists_list(request):
     # دریافت نوع مرتب‌سازی از آدرس بار (پیش‌فرض روی جدیدترین‌ها یا معمولی)
     sort_by = request.GET.get('sort', 'default')
@@ -302,7 +305,8 @@ def artist_detail(request, artist_id, slug_en=None):
     page_obj = paginator.get_page(page_number)
 
     albums = Album.objects.filter(artist=artist).order_by('-created_at')
-    singles = Music.objects.filter(Q(artists=artist) | Q(artist=artist), album__isnull=True).distinct().order_by('-created_at')
+    singles = Music.objects.filter(Q(artists=artist) | Q(artist=artist), album__isnull=True).distinct().order_by(
+        '-created_at')
 
     # 🟢 محاسبه وضعیت اشتراک برای صفحه هنرمند
     user_has_vip = False
@@ -330,6 +334,7 @@ def artist_detail(request, artist_id, slug_en=None):
             'user_has_vip': user_has_vip  # 👈 اضافه شد
         }
     )
+
 
 def about(request):
     return render(request, 'music/about.html')
@@ -713,6 +718,7 @@ def robots_txt(request):
     ]
     return HttpResponse("\n".join(lines), content_type="text/plain")
 
+
 SECRET = "farmusic-secret"
 
 
@@ -723,27 +729,17 @@ def import_music(request):
         data = json.loads(request.body)
 
         if data.get("secret") != SECRET:
-            return JsonResponse(
-                {"error": "unauthorized"},
-                status=403
-            )
+            return JsonResponse({"error": "unauthorized"},status=403)
 
-        artist, _ = Artist.objects.get_or_create(
-            name=data["artist"]
-        )
+        artist, _ = Artist.objects.get_or_create(name=data["artist"])
 
         genre = None
         if data.get("genre"):
-            genre, _ = Genre.objects.get_or_create(
-                name=data["genre"]
-            )
+            genre, _ = Genre.objects.get_or_create(name=data["genre"])
 
         album = None
         if data.get("album"):
-            album, _ = Album.objects.get_or_create(
-                title=data["album"],
-                artist=artist
-            )
+            album, _ = Album.objects.get_or_create(title=data["album"], artist=artist)
 
         music = Music.objects.create(
             title=data["title"],
@@ -751,19 +747,14 @@ def import_music(request):
             album=album,
             genre=genre,
             audio_url=data["audio_url"],
+            cover_url=data.get("cover_url"),  # 👈 این خط را اضافه کن
             file="placeholder.mp3",
             lyrics=data.get("lyrics") or "",
             year=data.get("year"),
             track_number=data.get("track_number"),
         )
 
-        return JsonResponse({
-            "ok": True,
-            "music_id": music.id
-        })
+        return JsonResponse({"ok": True,"music_id": music})
 
     except Exception as e:
-        return JsonResponse({
-            "ok": False,
-            "error": str(e)
-        }, status=500)
+        return JsonResponse({"ok": False,"error": str(e)}, status=500)
