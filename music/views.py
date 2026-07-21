@@ -729,7 +729,7 @@ def import_music(request):
         data = json.loads(request.body)
 
         if data.get("secret") != SECRET:
-            return JsonResponse({"error": "unauthorized"},status=403)
+            return JsonResponse({"error": "unauthorized"}, status=403)
 
         artist, _ = Artist.objects.get_or_create(name=data["artist"])
 
@@ -747,14 +747,18 @@ def import_music(request):
             album=album,
             genre=genre,
             audio_url=data["audio_url"],
-            cover_url=data.get("cover_url"),  # 👈 این خط را اضافه کن
+            cover_url=data.get("cover_url"),
             file="placeholder.mp3",
             lyrics=data.get("lyrics") or "",
             year=data.get("year"),
             track_number=data.get("track_number"),
         )
 
-        return JsonResponse({"ok": True,"music_id": music})
+        if album and data.get("cover_url") and not album.cover_url:
+            album.cover_url = data["cover_url"]
+            album.save(update_fields=["cover_url"])
+
+        return JsonResponse({"ok": True, "music_id": music.id})
 
     except Exception as e:
-        return JsonResponse({"ok": False,"error": str(e)}, status=500)
+        return JsonResponse({"ok": False, "error": str(e)}, status=500)
