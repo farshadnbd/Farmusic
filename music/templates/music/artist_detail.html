@@ -153,13 +153,20 @@
         {% for album in albums %}
             <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-4">
                 <div class="card music-card h-100">
-                    <a href="{% url 'album_detail' album.id album.slug_en %}">
-                        {% if album.cover %}
-                            <img src="{{ album.cover.url }}" class="img-fluid card-img-top music-cover" alt=""
-                                 loading="lazy">
+                    <a href="{% url 'album_detail' album.id album.slug_en|default:'album' %}">
+                        {% if album.cover_url %}
+                            <img src="{{ album.cover_url }}"
+                                 class="img-fluid music-cover-detail rounded-4 shadow-lg"
+                                 alt="{{ album.title }} - {{ album.artist.name }}" loading="lazy">
+                        {% elif album.cover %}
+                            <img src="{% thumbnail album.cover 'music_card' %}"
+                                 class="img-fluid music-cover-detail rounded-4 shadow-lg"
+                                 alt="{{ album.title }} - {{ album.artist.name }}" loading="lazy">
                         {% else %}
                             <img src="{% static 'images/default-cover.jpg' %}"
-                                 class="img-fluid card-img-top music-cover" alt="" loading="lazy">
+                                 class="img-fluid music-cover-detail rounded-4 shadow-lg"
+                                 alt="{{ album.title }} - {{ album.artist.name }}"
+                                 style="max-width: 320px; width: 100%;" loading="lazy">
                         {% endif %}
                     </a>
                     <div class="card-body">
