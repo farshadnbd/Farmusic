@@ -1,12 +1,11 @@
 import os
 import re
+from pathlib import Path
 from ftplib import FTP
 from urllib.parse import urlparse
 
 from django.core.management.base import BaseCommand
-
 from music.models import Music, Album
-from django.conf import settings
 
 
 FTP_HOST = "3264450084.cloudydl.com"
@@ -18,13 +17,28 @@ BASE_URL = "https://dl.farmusic.ir"
 
 
 def safe_filename(filename):
-    name, ext = os.path.splitext(filename)
+    stem = Path(filename).stem
+    ext = Path(filename).suffix.lower()
 
-    name = re.sub(r'[<>:"/\\|?*]', "", name)
-    name = re.sub(r"\s+", "_", name)
-    name = re.sub(r"_+", "_", name)
+    # حذف کاراکترهای غیرمجاز
+    stem = re.sub(r'[<>:"/\\|?*]', "", stem)
 
-    return name.strip("_") + ext.lower()
+    # اگر " - " وجود داشت به یک خط تیره تبدیل شود
+    stem = stem.replace(" - ", "-")
+
+    # بقیه فاصله‌ها هم خط تیره شوند
+    stem = re.sub(r"\s+", "-", stem)
+
+    # فقط حروف انگلیسی، فارسی، عدد و خط تیره بماند
+    stem = re.sub(r"[^A-Za-z0-9\u0600-\u06FF_-]", "", stem)
+
+    # خط تیره‌های پشت سرهم
+    stem = re.sub(r"-{2,}", "-", stem)
+
+    # حذف خط تیره ابتدا و انتها
+    stem = stem.strip("-")
+
+    return f"{stem}{ext}"
 
 
 class Command(BaseCommand):
@@ -36,101 +50,89 @@ class Command(BaseCommand):
         ftp.connect(FTP_HOST, FTP_PORT)
         ftp.login(FTP_USER, FTP_PASSWORD)
 
-        self.stdout.write("Connected.")
+        self.stdout.write(self.style.SUCCESS("Connected to FTP"))
 
-        # ---------- Tracks ----------
+        # ---------------- Tracks ----------------
 
         ftp.cwd("public_html/tracks")
 
-        files = ftp.nlst()
-
         rename_map = {}
 
-        for old in files:
+        for old_name in ftp.nlst():
 
-            new = safe_filename(old)
+            new_name = safe_filename(old_name)
 
-            if old != new:
-
+            if old_name != new_name:
                 try:
-                    ftp.rename(old, new)
-                    self.stdout.write(f"{old} -> {new}")
+                    ftp.rename(old_name, new_name)
+                    self.stdout.write(f"{old_name} -> {new_name}")
                 except Exception as e:
                     self.stdout.write(self.style.ERROR(str(e)))
                     continue
 
-            rename_map[old] = new
+            rename_map[old_name] = new_name
 
-        for music in Music.objects.all():
+        for music in Music.objects.exclude(audio_url=""):
 
-            if music.audio_url:
+            old_name = os.path.basename(
+                urlparse(music.audio_url).path
+            )
 
-                old_name = os.path.basename(
-                    urlparse(music.audio_url).path
+            if old_name in rename_map:
+
+                music.audio_url = (
+                    f"{BASE_URL}/tracks/{rename_map[old_name]}"
                 )
 
-                if old_name in rename_map:
+                music.save(update_fields=["audio_url"])
 
-                    music.audio_url = (
-                        f"{BASE_URL}/tracks/{rename_map[old_name]}"
-                    )
-
-                    music.save(update_fields=["audio_url"])
-
-        # ---------- Covers ----------
+        # ---------------- Covers ----------------
 
         ftp.cwd("../covers")
 
-        files = ftp.nlst()
-
         rename_map = {}
 
-        for old in files:
+        for old_name in ftp.nlst():
 
-            new = safe_filename(old)
+            new_name = safe_filename(old_name)
 
-            if old != new:
-
+            if old_name != new_name:
                 try:
-                    ftp.rename(old, new)
-                    self.stdout.write(f"{old} -> {new}")
+                    ftp.rename(old_name, new_name)
+                    self.stdout.write(f"{old_name} -> {new_name}")
                 except Exception as e:
                     self.stdout.write(self.style.ERROR(str(e)))
                     continue
 
-            rename_map[old] = new
+            rename_map[old_name] = new_name
 
-        for music in Music.objects.all():
+        for music in Music.objects.exclude(cover_url__isnull=True).exclude(cover_url=""):
 
-            if music.cover_url:
+            old_name = os.path.basename(
+                urlparse(music.cover_url).path
+            )
 
-                old_name = os.path.basename(
-                    urlparse(music.cover_url).path
+            if old_name in rename_map:
+
+                music.cover_url = (
+                    f"{BASE_URL}/covers/{rename_map[old_name]}"
                 )
 
-                if old_name in rename_map:
+                music.save(update_fields=["cover_url"])
 
-                    music.cover_url = (
-                        f"{BASE_URL}/covers/{rename_map[old_name]}"
-                    )
+        for album in Album.objects.exclude(cover_url__isnull=True).exclude(cover_url=""):
 
-                    music.save(update_fields=["cover_url"])
+            old_name = os.path.basename(
+                urlparse(album.cover_url).path
+            )
 
-        for album in Album.objects.all():
+            if old_name in rename_map:
 
-            if getattr(album, "cover_url", None):
-
-                old_name = os.path.basename(
-                    urlparse(album.cover_url).path
+                album.cover_url = (
+                    f"{BASE_URL}/covers/{rename_map[old_name]}"
                 )
 
-                if old_name in rename_map:
-
-                    album.cover_url = (
-                        f"{BASE_URL}/covers/{rename_map[old_name]}"
-                    )
-
-                    album.save(update_fields=["cover_url"])
+                album.save(update_fields=["cover_url"])
 
         ftp.quit()
 
