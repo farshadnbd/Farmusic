@@ -45,8 +45,7 @@ urlpatterns = [
     path('sitemap-main.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
     path('robots.txt', robots_txt, name='robots_txt'),
     path('telegram-webhook-secret-99/', bot_views.telegram_webhook, name='telegram_webhook'),
-    path("api/import-music/", import_music, name="import_music"),
-    path("api/check-file/", check_file, name="check_file"),
+    path("api/import-music/", import_music, name="import_music" ),
 ]
 
 handler404 = 'music.views.custom_404'

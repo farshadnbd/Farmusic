@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from dashboard.utils import generate_album_zip
-from .models import Music, Genre, Artist, Like, Comment, Album, ArtistFollow, Playlist, CommentReport, \
-    TelegramImportedFile
+from .models import Music, Genre, Artist, Like, Comment, Album, ArtistFollow, Playlist, CommentReport
 from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Q
@@ -763,20 +762,7 @@ def import_music(request):
             album.cover_url = data["cover_url"]
             album.save(update_fields=["cover_url"])
 
-        TelegramImportedFile.objects.create(file_unique_id=data["file_unique_id"], music=music)
         return JsonResponse({"ok": True, "music_id": music.id})
 
     except Exception as e:
         return JsonResponse({"ok": False, "error": str(e)}, status=500)
-
-
-@csrf_exempt
-@require_POST
-def check_file(request):
-    data = json.loads(request.body)
-
-    if data.get("secret") != SECRET:
-        return JsonResponse({"ok": False}, status=403)
-
-    exists = TelegramImportedFile.objects.filter(file_unique_id=data["file_unique_id"]).exists()
-    return JsonResponse({"exists": exists})
