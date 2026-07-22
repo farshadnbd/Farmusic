@@ -170,3 +170,11 @@ class CommentReport(models.Model):
 
     def __str__(self):
         return f"Report by {self.user.username} on comment {self.comment.id}"
+
+class TelegramImportedFile(models.Model):
+    file_unique_id = models.CharField(max_length=200, unique=True)
+    music = models.ForeignKey(Music, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.file_unique_id

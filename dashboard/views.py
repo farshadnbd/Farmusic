@@ -161,10 +161,7 @@ def bulk_upload(request):
                         user=follow.user,
                         title='آهنگ جدید',
                         message=f'{artist.name} آهنگ جدید "{music.title}" را منتشر کرد.',
-                        url=reverse(
-                            "music_detail",
-                            kwargs={"pk": music.id, "slug_en": music.slug_en, }
-                        )
+                        url=reverse("music_detail", kwargs={"pk": music.id, "slug_en": music.slug_en, })
                     )
                 )
             Notification.objects.bulk_create(notifications)
@@ -174,7 +171,8 @@ def bulk_upload(request):
                 album.zip_file = None
                 album.save()
 
-        messages.success(request, f"{len(musics)} آهنگ با موفقیت به همراه تفکیک خوانندگان اضافه و فرآیند انتقال به هاست دانلود آغاز شد.")
+        messages.success(request,
+                         f"{len(musics)} آهنگ با موفقیت به همراه تفکیک خوانندگان اضافه و فرآیند انتقال به هاست دانلود آغاز شد.")
         return redirect('bulk_upload')
 
     context = {"artists": Artist.objects.all(), "genres": Genre.objects.all(), }
