@@ -11,8 +11,8 @@ def delete_file_from_ftp(url):
         parsed = urlparse(url)
         remote_path = parsed.path.lstrip("/")
         ftp = FTP()
-        ftp.connect(settings.FTP_HOST,settings.FTP_PORT,timeout=30)
-        ftp.login(settings.FTP_USER,settings.FTP_PASSWORD)
+        ftp.connect(settings.FTP_HOST, 21)
+        ftp.login(settings.FTP_USER, settings.FTP_PASS)
         ftp.delete(remote_path)
         ftp.quit()
 
