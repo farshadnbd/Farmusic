@@ -4,19 +4,25 @@ import requests
 
 
 class Command(BaseCommand):
-    help = "Remove broken musics"
+    help = "Find and remove broken musics"
 
-    def broken_audio(self, url):
+    def check_remote(self, url):
         if not url:
             return True, "No audio_url"
 
         try:
-            r = requests.head(url, timeout=10, allow_redirects=True)
+            r = requests.get(
+                url,
+                stream=True,
+                timeout=(3, 5),
+                allow_redirects=True,
+            )
 
             if r.status_code != 200:
                 return True, f"HTTP {r.status_code}"
 
             size = int(r.headers.get("Content-Length", 0))
+            r.close()
 
             if size == 0:
                 return True, "0 Byte"
@@ -30,7 +36,9 @@ class Command(BaseCommand):
 
         broken = []
 
-        for music in Music.objects.select_related("artist"):
+        queryset = Music.objects.select_related("artist")
+
+        for music in queryset:
 
             reason = None
 
@@ -38,14 +46,19 @@ class Command(BaseCommand):
             if music.artist is None:
                 reason = "Artist=None"
 
-            elif music.artist.name.lower() == "unknown artist":
+            elif music.artist.name.strip().lower() == "unknown artist":
                 reason = "Unknown Artist"
 
-            # فایل خراب
-            bad, why = self.broken_audio(music.audio_url)
+            # فقط اگر قبلاً مشکوک بود، فایل را چک کن
+            if reason:
+                bad, why = self.check_remote(music.audio_url)
 
-            if bad:
-                reason = why
+                if bad:
+                    reason += f" | {why}"
+
+            # اگر URL اصلاً وجود ندارد
+            elif not music.audio_url:
+                reason = "No audio_url"
 
             if reason:
                 broken.append((music, reason))
@@ -65,7 +78,7 @@ class Command(BaseCommand):
             return
 
         for music, reason in broken:
-            print("Delete:", music.id, music.title)
+            print("Deleting:", music.id, music.title)
             music.delete()
 
         print("Done")
