@@ -2,4 +2,8 @@ from django.apps import AppConfig
 
 
 class MusicConfig(AppConfig):
-    name = 'music'
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "music"
+
+    def ready(self):
+        import music.signals

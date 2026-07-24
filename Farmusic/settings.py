@@ -33,7 +33,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sitemaps',
 
-    'music',
+    'music.apps.MusicConfig',
     'accounts',
     'payments',
     'dashboard',
@@ -140,14 +140,10 @@ THUMBNAIL_ALIASES = {"": {"music_card": {"size": (400, 400), "crop": True, "qual
 # =========================
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8371153857:AAF3YWVelognCWjb5blJpI3cXp4sLOyv6PQ")
-
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "-1004448617534")
-
 SITE_URL = os.getenv("SITE_URL", "https://farmusic.ir").rstrip("/")
-
 ZARINPAL_MERCHANT_ID = os.getenv("ZARINPAL_MERCHANT_ID", "")
 ZARINPAL_CALLBACK_URL = f"{SITE_URL}/payments/verify/"
-
 FTP_HOST = os.environ.get("FTP_HOST", "dl.farmusic.com")
 FTP_USER = os.environ.get("FTP_USER", "farmusic")
 FTP_PASS = os.environ.get("FTP_PASS", "")  # این مقدار را در پنل لیارا ست می‌کنی

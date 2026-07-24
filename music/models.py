@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
-
+from music.ftp import delete_file_from_ftp
 
 def generate_smart_slug(instance, text_field_value, default_prefix):
     if not text_field_value:
@@ -106,6 +106,19 @@ class Music(models.Model):
 
     def __str__(self):
         return self.title
+
+    def delete(self, *args, **kwargs):
+
+        delete_file_from_ftp(self.audio_url)
+        delete_file_from_ftp(self.cover_url)
+
+        if self.file:
+            self.file.delete(save=False)
+
+        if self.cover:
+            self.cover.delete(save=False)
+
+        super().delete(*args, **kwargs)
 
 
 class TelegramBotState(models.Model):
