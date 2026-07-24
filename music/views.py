@@ -608,7 +608,7 @@ def download_album(request, album_id):
     if album.zip_url:
         return redirect(album.zip_url)
 
-    messages.error(request, "فایل آلبوم موجود نیست.")
+    messages.error(request, "فایل آلبوم موجود نیست")
     return redirect("album_detail", album.id, album.slug_en)
 
 
