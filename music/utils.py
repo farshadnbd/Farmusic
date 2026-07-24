@@ -65,3 +65,33 @@ def upload_to_ftp_and_clean(instance_id, local_file_path, remote_dir="public_htm
     except Exception as e:
         print(f"❌ FTP background upload failed for Music ID {instance_id}: {e}")
         return False
+
+def upload_zip_to_ftp(local_file_path):
+    if not os.path.exists(local_file_path):
+        return None
+
+    file_name = os.path.basename(local_file_path)
+
+    ftp = ftplib.FTP()
+    ftp.connect(settings.FTP_HOST, 21, timeout=30)
+    ftp.login(settings.FTP_USER, settings.FTP_PASS)
+
+    remote_dir = "public_html/albums"
+
+    for part in remote_dir.split("/"):
+        if part:
+            try:
+                ftp.cwd(part)
+            except:
+                try:
+                    ftp.mkd(part)
+                    ftp.cwd(part)
+                except:
+                    pass
+
+    with open(local_file_path, "rb") as f:
+        ftp.storbinary(f"STOR {file_name}", f)
+
+    ftp.quit()
+
+    return f"http://{settings.DOWNLOAD_BASE_URL}/albums/{file_name}"

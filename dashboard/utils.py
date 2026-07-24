@@ -5,7 +5,8 @@ import os
 import zipfile
 import tempfile
 from django.core.files import File
-
+import requests
+from music.utils import upload_zip_to_ftp
 
 def extract_metadata(mp3_file):
     try:
@@ -88,31 +89,50 @@ def generate_album_zip(album):
 
     try:
         with zipfile.ZipFile(temp_file.name, "w", zipfile.ZIP_DEFLATED) as zipf:
+
             added_count = 0
 
             for music in musics:
-                if music.file and hasattr(music.file, "path") and os.path.exists(music.file.path):
-                    zipf.write(
-                        music.file.path,
-                        arcname=os.path.basename(music.file.name)
-                    )
+
+                if not music.audio_url:
+                    continue
+
+                try:
+
+                    r = requests.get(music.audio_url, timeout=60)
+
+                    if r.status_code != 200:
+                        continue
+
+                    filename = os.path.basename(music.audio_url)
+
+                    zipf.writestr(filename, r.content)
+
                     added_count += 1
 
-        # اگر هیچ فایل آهنگی داخل zip نرفت
-        if added_count == 0:
-            try:
-                os.remove(temp_file.name)
-            except:
-                pass
-            return None
+                except Exception as e:
+                    print(e)
 
-        with open(temp_file.name, "rb") as f:
-            safe_title = album.title.replace("/", "-").replace("\\", "-")
-            album.zip_file.save(
-                f"{safe_title}.zip",
-                File(f),
-                save=True
-            )
+        safe_title = album.title.replace("/", "-").replace("\\", "-")
+
+        new_zip = tempfile.NamedTemporaryFile(delete=False, suffix=".zip")
+        new_zip.close()
+
+        final_zip = os.path.join(
+            os.path.dirname(temp_file.name),
+            f"{safe_title}.zip"
+        )
+
+        os.rename(temp_file.name, final_zip)
+
+        zip_url = upload_zip_to_ftp(final_zip)
+
+        album.zip_url = zip_url
+        album.save(update_fields=["zip_url"])
+
+        os.remove(final_zip)
+
+        return zip_url
 
         return album.zip_file
 

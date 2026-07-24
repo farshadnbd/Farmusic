@@ -588,16 +588,28 @@ def download_album(request, album_id):
 
     try:
         subscription = Subscription.objects.get(user=request.user)
+
         if not subscription.active or subscription.expire_date < timezone.now():
             return redirect("buy_subscription")
+
     except Subscription.DoesNotExist:
         return redirect("buy_subscription")
 
-    if not album.zip_file:
+    # اگر هنوز ZIP ساخته نشده
+    if not album.zip_url and not album.zip_file:
         generate_album_zip(album)
         album.refresh_from_db()
 
-    return FileResponse(album.zip_file.open("rb"), as_attachment=True, filename=f"{album.title}.zip")
+    # اولویت با هاست دانلود
+    if album.zip_url:
+        return redirect(album.zip_url)
+
+    # برای آلبوم‌های قدیمی
+    if album.zip_file:
+        return FileResponse(album.zip_file.open("rb"), as_attachment=True, filename=f"{album.title}.zip", )
+
+    messages.error(request, "فایل آلبوم موجود نیست.")
+    return redirect("album_detail", album.id, album.slug_en)
 
 
 @login_required
