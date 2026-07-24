@@ -605,8 +605,8 @@ def download_album(request, album_id):
         return redirect(album.zip_url)
 
     # برای آلبوم‌های قدیمی
-    if album.zip_file:
-        return FileResponse(album.zip_file.open("rb"), as_attachment=True, filename=f"{album.title}.zip", )
+    if album.zip_url:
+        return redirect(album.zip_url)
 
     messages.error(request, "فایل آلبوم موجود نیست.")
     return redirect("album_detail", album.id, album.slug_en)
