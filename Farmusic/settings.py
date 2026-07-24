@@ -147,5 +147,6 @@ ZARINPAL_CALLBACK_URL = f"{SITE_URL}/payments/verify/"
 FTP_HOST = os.environ.get("FTP_HOST", "dl.farmusic.com")
 FTP_USER = os.environ.get("FTP_USER", "farmusic")
 FTP_PASS = os.environ.get("FTP_PASS", "")  # این مقدار را در پنل لیارا ست می‌کنی
+FTP_PORT = int(os.getenv("FTP_PORT", 21))
 DOWNLOAD_BASE_URL = "dl.farmusic.ir"
 TELEGRAM_API_BASE = "https://telegram.farmusic.ir"
