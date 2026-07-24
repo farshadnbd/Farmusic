@@ -54,6 +54,11 @@ def upload_to_ftp_and_clean(instance_id, local_file_path, remote_dir="public_htm
 
         # ۵. به‌روزرسانی آدرس صوتی در دیتابیس
         Music.objects.filter(id=instance_id).update(audio_url=download_url)
+        music = Music.objects.select_related("album").get(id=instance_id)
+
+        if music.album:
+            music.album.zip_url = None
+            music.album.save(update_fields=["zip_url"])
 
         # ۶. پاکسازی فایل موقت از روی دیسک اصلی لیارا
         if os.path.exists(local_file_path):

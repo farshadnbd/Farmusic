@@ -596,7 +596,7 @@ def download_album(request, album_id):
         return redirect("buy_subscription")
 
     # اگر هنوز ZIP ساخته نشده
-    if not album.zip_url and not album.zip_file:
+    if not album.zip_url and not album.zip_url:
         generate_album_zip(album)
         album.refresh_from_db()
 

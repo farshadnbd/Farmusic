@@ -166,10 +166,9 @@ def bulk_upload(request):
                 )
             Notification.objects.bulk_create(notifications)
 
-            if album and album.zip_file:
-                album.zip_file.delete(save=False)
-                album.zip_file = None
-                album.save()
+            if album:
+                album.zip_url = None
+                album.save(update_fields=["zip_url"])
 
         messages.success(request,
                          f"{len(musics)} آهنگ با موفقیت به همراه تفکیک خوانندگان اضافه و فرآیند انتقال به هاست دانلود آغاز شد.")

@@ -105,18 +105,12 @@ def generate_album_zip(album):
                         continue
 
                     filename = os.path.basename(music.audio_url)
-
                     zipf.writestr(filename, r.content)
-
                     added_count += 1
-
                 except Exception as e:
                     print(e)
 
         safe_title = album.title.replace("/", "-").replace("\\", "-")
-
-        new_zip = tempfile.NamedTemporaryFile(delete=False, suffix=".zip")
-        new_zip.close()
 
         final_zip = os.path.join(
             os.path.dirname(temp_file.name),
@@ -125,16 +119,17 @@ def generate_album_zip(album):
 
         os.rename(temp_file.name, final_zip)
 
-        zip_url = upload_zip_to_ftp(final_zip)
+        try:
+            zip_url = upload_zip_to_ftp(final_zip)
 
-        album.zip_url = zip_url
-        album.save(update_fields=["zip_url"])
+            album.zip_url = zip_url
+            album.save(update_fields=["zip_url"])
 
-        os.remove(final_zip)
+            return zip_url
 
-        return zip_url
-
-        return album.zip_file
+        finally:
+            if os.path.exists(final_zip):
+                os.remove(final_zip)
 
     finally:
         try:
