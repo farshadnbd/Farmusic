@@ -13,6 +13,7 @@ def delete_file_from_ftp(url):
         ftp = FTP()
         ftp.connect(settings.FTP_HOST, 21)
         ftp.login(settings.FTP_USER, settings.FTP_PASS)
+        ftp.cwd("public_html")
         ftp.delete(remote_path)
         ftp.quit()
 
