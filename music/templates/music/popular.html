@@ -108,9 +108,14 @@
                             {% endif %}
                         </p>
                         <p class="text-secondary mb-2">
-                            <a class="artist-link" href="{% url 'genre_musics' music.genre.id music.genre.slug_en %}">
-                                {{ music.genre }}
-                            </a>
+                            {% if music.genre %}
+                                <a class="artist-link"
+                                   href="{% url 'genre_musics' music.genre.id music.genre.slug_en|default:'genre' %}">
+                                    {{ music.genre.name }} 🏷️
+                                </a>
+                            {% else %}
+                                <span class="text-muted">بدون ژانر</span>
+                            {% endif %}
                         </p>
                         <div>
                             ❤️ {{ music.likes_count }}
