@@ -3,23 +3,35 @@ from music.models import Album
 
 
 class Command(BaseCommand):
-    help = "Remove single albums"
+    help = "Remove useless single-track albums"
 
     def handle(self, *args, **kwargs):
 
         deleted = 0
 
-        albums = Album.objects.all()
+        for album in Album.objects.all():
 
-        for album in albums:
-
+            # فقط آلبوم‌های تک‌آهنگی
             if album.music_set.count() != 1:
                 continue
 
-            if "single" not in album.title.lower():
-                continue
-
             music = album.music_set.first()
+
+            album_title = album.title.strip().lower()
+            music_title = music.title.strip().lower()
+
+            remove = False
+
+            # اگر Single بود
+            if "single" in album_title:
+                remove = True
+
+            # یا اسم آلبوم و آهنگ یکی بود
+            elif album_title == music_title:
+                remove = True
+
+            if not remove:
+                continue
 
             music.album = None
             music.save(update_fields=["album"])
