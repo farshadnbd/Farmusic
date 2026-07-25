@@ -36,9 +36,10 @@ class Command(BaseCommand):
             music.album = None
             music.save(update_fields=["album"])
 
+            # جلوگیری از حذف کاور و فایل ZIP
+            album.cover_url = None
+            album.save(update_fields=["cover_url"])
+
             print(f"Delete Album: {album.id} - {album.title}")
 
             album.delete()
-            deleted += 1
-
-        print(f"\nDeleted {deleted} albums")
