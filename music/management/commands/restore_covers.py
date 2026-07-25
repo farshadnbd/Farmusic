@@ -1,7 +1,6 @@
 import os
 import tempfile
 import requests
-from django.db.models import Q
 from django.core.management.base import BaseCommand
 from mutagen.id3 import ID3, ID3NoHeaderError
 
@@ -18,7 +17,7 @@ class Command(BaseCommand):
         skipped = 0
 
         musics = Music.objects.select_related("album").filter(
-            Q(cover_url__isnull=True) | Q(cover_url="")
+            cover_url__isnull=True
         )
 
         for music in musics:
