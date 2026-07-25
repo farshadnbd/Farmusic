@@ -10,15 +10,22 @@ from music.utils import upload_cover_to_ftp
 
 
 class Command(BaseCommand):
-    help = "Restore covers from audio_url"
+    help = "Restore missing covers from audio_url"
 
     def handle(self, *args, **kwargs):
 
         restored = 0
+        skipped = 0
 
         for music in Music.objects.select_related("album"):
 
+            # فقط موزیک‌هایی که کاور ندارند
+            if music.cover_url or music.cover:
+                skipped += 1
+                continue
+
             if not music.audio_url:
+                skipped += 1
                 continue
 
             try:
@@ -54,7 +61,6 @@ class Command(BaseCommand):
                         temp_cover.write(cover_data)
                         temp_cover_path = temp_cover.name
 
-                    # اسم فایل را مثل قبل قرار می‌دهیم
                     new_path = os.path.join(
                         os.path.dirname(temp_cover_path),
                         filename
@@ -75,7 +81,7 @@ class Command(BaseCommand):
 
                     restored += 1
 
-                    print(f"Restored -> {music.title}")
+                    print(f"✔ Restored -> {music.title}")
 
                 finally:
                     if os.path.exists(temp_mp3_path):
@@ -85,4 +91,5 @@ class Command(BaseCommand):
                 print(e)
 
         print("=" * 60)
-        print(f"Restored {restored} covers")
+        print(f"Restored: {restored}")
+        print(f"Skipped : {skipped}")
