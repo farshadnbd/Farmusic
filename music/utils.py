@@ -66,3 +66,45 @@ def upload_to_ftp_and_clean(instance_id, local_file_path, remote_dir="public_htm
     except Exception as e:
         print(f"❌ FTP background upload failed for Music ID {instance_id}: {e}")
         return False
+
+
+def upload_file_to_ftp(local_file_path, remote_dir):
+    if not os.path.exists(local_file_path):
+        return None
+
+    file_name = os.path.basename(local_file_path)
+
+    ftp = ftplib.FTP()
+    ftp.connect(settings.FTP_HOST, 21, timeout=30)
+    ftp.login(settings.FTP_USER, settings.FTP_PASS)
+
+    path_parts = remote_dir.split("/")
+
+    for part in path_parts:
+        if part:
+            try:
+                ftp.cwd(part)
+            except Exception:
+                try:
+                    ftp.mkd(part)
+                    ftp.cwd(part)
+                except:
+                    pass
+
+    with open(local_file_path, "rb") as f:
+        ftp.storbinary(f"STOR {file_name}", f)
+
+    try:
+        ftp.quit()
+    except:
+        ftp.close()
+
+    url_dir = remote_dir.replace("public_html/", "").replace("public_html", "")
+    if url_dir and not url_dir.startswith("/"):
+        url_dir = "/" + url_dir
+
+    return f"http://{settings.DOWNLOAD_BASE_URL}{url_dir}/{file_name}"
+
+
+def upload_cover_to_ftp(local_file_path):
+    return upload_file_to_ftp(local_file_path, "public_html/covers")
