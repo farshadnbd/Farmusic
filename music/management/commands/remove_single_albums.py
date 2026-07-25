@@ -6,9 +6,7 @@ class Command(BaseCommand):
     help = "Remove useless single-track albums"
 
     def handle(self, *args, **kwargs):
-
         deleted = 0
-
         for album in Album.objects.all():
 
             # فقط آلبوم‌های تک‌آهنگی
@@ -16,7 +14,6 @@ class Command(BaseCommand):
                 continue
 
             music = album.music_set.first()
-
             album_title = album.title.strip().lower()
             music_title = music.title.strip().lower()
 

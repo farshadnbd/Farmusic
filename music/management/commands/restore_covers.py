@@ -11,25 +11,38 @@ from music.utils import upload_cover_to_ftp
 
 
 class Command(BaseCommand):
-    help = "Restore missing covers from audio_url"
+    help = "Restore missing FTP covers from MP3"
 
     def handle(self, *args, **kwargs):
-
         restored = 0
         skipped = 0
-
-        # فقط موزیک‌هایی که کاور ندارند
-        musics = Music.objects.select_related("album").filter(
-            cover_url__isnull=True
-        )
-
-        self.stdout.write(
-            f"Found {musics.count()} musics without covers"
-        )
+        failed = 0
+        musics = Music.objects.select_related("album").all()
+        self.stdout.write(f"Checking {musics.count()} musics...")
 
         for music in musics:
 
             if not music.audio_url:
+                skipped += 1
+                continue
+            # -----------------------------
+            # بررسی وجود فایل کاور روی FTP
+            # -----------------------------
+            needs_restore = False
+
+            if not music.cover_url:
+                needs_restore = True
+            else:
+                try:
+                    head = requests.head(music.cover_url,timeout=10,allow_redirects=True,)
+
+                    if head.status_code != 200:
+                        needs_restore = True
+
+                except Exception:
+                    needs_restore = True
+
+            if not needs_restore:
                 skipped += 1
                 continue
 
@@ -37,80 +50,69 @@ class Command(BaseCommand):
             cover_path = None
 
             try:
-                print(f"\nChecking {music.id} - {music.title}")
-                response = requests.get(music.audio_url, timeout=60)
+                print(f"\nRestore -> {music.id} | {music.title}")
+                response = requests.get(music.audio_url,timeout=60,)
 
                 if response.status_code != 200:
                     print("Audio not found")
-                    skipped += 1
+                    failed += 1
                     continue
 
-                # ذخیره موقت MP3
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_mp3:
-
+                with tempfile.NamedTemporaryFile(delete=False,suffix=".mp3",) as temp_mp3:
                     temp_mp3.write(response.content)
                     temp_mp3_path = temp_mp3.name
-
                 try:
-
                     try:
                         audio = ID3(temp_mp3_path)
-
                     except ID3NoHeaderError:
                         print("No ID3 tag")
-                        skipped += 1
+                        failed += 1
                         continue
 
                     cover_data = None
 
                     for key in audio.keys():
-
                         if key.startswith("APIC"):
                             cover_data = audio[key].data
                             break
 
                     if not cover_data:
-                        print("No cover inside mp3")
-                        skipped += 1
+                        print("No APIC cover")
+                        failed += 1
                         continue
 
-                    filename = os.path.basename(music.audio_url).replace(".mp3", ".jpg")
-                    # ساخت فایل کاور موقت
-                    with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp_cover:
+                    filename = os.path.basename(
+                        music.audio_url
+                    ).replace(".mp3", ".jpg")
 
+                    with tempfile.NamedTemporaryFile(delete=False,suffix=".jpg",) as temp_cover:
                         temp_cover.write(cover_data)
                         cover_path = temp_cover.name
 
-                    # تغییر نام
-                    new_path = os.path.join(os.path.dirname(cover_path), filename)
+                    final_cover = os.path.join(os.path.dirname(cover_path),filename,)
+                    os.rename(cover_path, final_cover)
+                    cover_path = final_cover
 
-                    os.rename(cover_path, new_path)
-
-                    cover_path = new_path
-                    # ==========================
-                    # آماده سازی برای سایت
-                    # crop + resize + compress
-                    # ===================
+                    # --------------------------
+                    # Crop + Compress
+                    # --------------------------
                     image = Image.open(cover_path).convert("RGB")
-                    image = ImageOps.fit(image, (400, 400), Image.Resampling.LANCZOS)
-                    image.save(cover_path, "JPEG", quality=85, optimize=True)
-                    print("Cover optimized")
-                    # آپلود کاور
+                    image = ImageOps.fit(image,(400, 400),Image.Resampling.LANCZOS,)
+                    image.save(cover_path,"JPEG",quality=85,optimize=True,)
+                    # --------------------------
+                    # Upload
+                    # --------------------------
                     cover_url = upload_cover_to_ftp(cover_path)
                     music.cover_url = cover_url
                     music.save(update_fields=["cover_url"])
 
-                    # اگر آلبوم کاور ندارد
-                    if (
-                            music.album
-                            and not music.album.cover_url
-                    ):
-                        music.album.cover_url = cover_url
-                        music.album.save(update_fields=["cover_url"])
+                    if music.album:
+                        if not music.album.cover_url:
+                            music.album.cover_url = cover_url
+                            music.album.save(update_fields=["cover_url"])
 
                     restored += 1
                     print(f"✔ Restored -> {music.title}")
-
 
                 finally:
                     if temp_mp3_path and os.path.exists(temp_mp3_path):
@@ -120,8 +122,10 @@ class Command(BaseCommand):
                         os.remove(cover_path)
 
             except Exception as e:
+                failed += 1
                 print(f"ERROR {music.id}: {e}")
 
         print("=" * 60)
-        print(f"Restored: {restored}")
-        print(f"Skipped : {skipped}")
+        print(f"Restored : {restored}")
+        print(f"Skipped  : {skipped}")
+        print(f"Failed   : {failed}")
