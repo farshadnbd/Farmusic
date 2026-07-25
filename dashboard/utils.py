@@ -2,11 +2,9 @@ from mutagen.id3 import ID3
 from mutagen.easyid3 import EasyID3
 from django.core.files.base import ContentFile
 import os
-import zipfile
 import tempfile
 from django.core.files import File
 import requests
-from music.utils import upload_zip_to_ftp
 
 def extract_metadata(mp3_file):
     try:
@@ -76,64 +74,3 @@ def extract_lyrics(mp3_file):
         pass
     return None
 
-
-def generate_album_zip(album):
-    musics = album.music_set.all()
-
-    # اگر آلبوم هیچ آهنگی نداشت
-    if not musics.exists():
-        return None
-
-    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".zip")
-    temp_file.close()
-
-    try:
-        with zipfile.ZipFile(temp_file.name, "w", zipfile.ZIP_DEFLATED) as zipf:
-
-            added_count = 0
-
-            for music in musics:
-
-                if not music.audio_url:
-                    continue
-
-                try:
-
-                    r = requests.get(music.audio_url, timeout=60)
-
-                    if r.status_code != 200:
-                        continue
-
-                    filename = os.path.basename(music.audio_url)
-                    zipf.writestr(filename, r.content)
-                    added_count += 1
-                except Exception as e:
-                    print(e)
-
-        safe_title = album.title.replace("/", "-").replace("\\", "-")
-
-        final_zip = os.path.join(
-            os.path.dirname(temp_file.name),
-            f"{safe_title}.zip"
-        )
-
-        os.rename(temp_file.name, final_zip)
-
-        try:
-            zip_url = upload_zip_to_ftp(final_zip)
-
-            album.zip_url = zip_url
-            album.save(update_fields=["zip_url"])
-
-            return zip_url
-
-        finally:
-            if os.path.exists(final_zip):
-                os.remove(final_zip)
-
-    finally:
-        try:
-            if os.path.exists(temp_file.name):
-                os.remove(temp_file.name)
-        except:
-            pass

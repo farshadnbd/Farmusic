@@ -1,5 +1,4 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from dashboard.utils import generate_album_zip
 from .models import Music, Genre, Artist, Like, Comment, Album, ArtistFollow, Playlist, CommentReport
 from django.contrib import messages
 from django.utils import timezone
@@ -32,10 +31,8 @@ def home(request):
     if request.user.is_authenticated:
         try:
             subscription = Subscription.objects.get(user=request.user)
-            user_has_vip = (
-                    subscription.active and
-                    subscription.expire_date >= timezone.now()
-            )
+            user_has_vip = (subscription.active and subscription.expire_date >= timezone.now())
+
         except Subscription.DoesNotExist:
             pass
 
@@ -48,18 +45,10 @@ def home(request):
 
 
 def music_detail(request, pk, slug_en=None):
-    music = get_object_or_404(
-        Music.objects.select_related('artist', 'genre', 'album'),
-        pk=pk
-    )
+    music = get_object_or_404(Music.objects.select_related('artist', 'genre', 'album'), pk=pk)
 
     if slug_en is None or (music.slug_en and music.slug_en != slug_en):
-        return redirect(
-            'music_detail',
-            pk=music.id,
-            slug_en=music.slug_en or 'music',
-            permanent=True
-        )
+        return redirect('music_detail', pk=music.id, slug_en=music.slug_en or 'music', permanent=True)
 
     music.views_count += 1
     music.save(update_fields=['views_count'])
@@ -70,10 +59,7 @@ def music_detail(request, pk, slug_en=None):
         .filter(artist=music.artist)
         .exclude(id=music.id)[:6]
     )
-    comments = Comment.objects.filter(
-        music=music,
-        parent__isnull=True
-    ).order_by('-created_at')
+    comments = Comment.objects.filter(music=music, parent__isnull=True).order_by('-created_at')
 
     playlists = []
     if request.user.is_authenticated:
@@ -94,18 +80,9 @@ def music_detail(request, pk, slug_en=None):
     if music.is_vip and not user_has_vip:
         can_download = False
 
-    return render(
-        request,
-        'music/detail.html',
-        {
-            'music': music,
-            'can_download': can_download,
-            'related_musics': related_musics,
-            'comments': comments,
-            'playlists': playlists,
-            'user_has_vip': user_has_vip,  # 👈 اضافه شد
-        }
-    )
+    return render(request, 'music/detail.html',
+                  {'music': music, 'can_download': can_download, 'related_musics': related_musics, 'comments': comments,
+                   'playlists': playlists, 'user_has_vip': user_has_vip, })
 
 
 def download_music(request, pk):
@@ -137,14 +114,6 @@ def download_music(request, pk):
         music.download_count += 1
         music.save(update_fields=['download_count'])
 
-        # ترفند: اضافه کردن کوری استرینگ برای مجبور کردن بعضی هاست‌های دانلود به دانلود مستقیم
-        # اگر هاست دانلود شما پارامتر دیسپوزیشن را ساپورت کند (مثل ?dl=1 یا ?download=1) آن را اینجا اضافه کنید:
-        # if "?" in file_url:
-        #     file_url += "&dl=1"
-        # else:
-        #     file_url += "?dl=1"
-
-    # ۳. ریدایرکت به هاست دانلود
     return redirect(file_url)
 
 
@@ -174,15 +143,12 @@ def search_music(request):
                 Q(title__icontains=query) |
                 Q(slug_en__icontains=query_slug) |
                 Q(search_aliases__icontains=query) |
-
                 Q(artist__name__icontains=query) |
                 Q(artist__slug_en__icontains=query_slug) |
                 Q(artist__search_aliases__icontains=query) |
-
                 Q(album__title__icontains=query) |
                 Q(album__slug_en__icontains=query_slug) |
                 Q(album__search_aliases__icontains=query) |
-
                 Q(genre__name__icontains=query) |
                 Q(genre__slug_en__icontains=query_slug) |
                 Q(genre__search_aliases__icontains=query)
@@ -218,16 +184,8 @@ def genre_musics(request, genre_id, slug_en=None):
         except Subscription.DoesNotExist:
             pass
 
-    return render(
-        request,
-        'music/genre_musics.html',
-        {
-            'genre': genre,
-            'musics': musics,
-            'page_obj': page_obj,
-            'user_has_vip': user_has_vip  # 👈 اضافه شد
-        }
-    )
+    return render(request, 'music/genre_musics.html',
+                  {'genre': genre, 'musics': musics, 'page_obj': page_obj, 'user_has_vip': user_has_vip})
 
 
 def popular_musics(request):
@@ -258,12 +216,9 @@ def popular_musics(request):
         except Subscription.DoesNotExist:
             pass
 
-    return render(request, 'music/popular.html', {
-        'musics': musics,
-        'page_obj': page_obj,
-        'current_sort': sort_by,
-        'user_has_vip': user_has_vip  # 👈 اضافه شد
-    })
+    return render(request, 'music/popular.html', {'musics': musics, 'page_obj': page_obj,
+                                                  'current_sort': sort_by,
+                                                  'user_has_vip': user_has_vip})
 
 
 def artists_list(request):
@@ -580,36 +535,6 @@ def album_detail(request, album_id, slug_en=None):
             'musics': musics
         }
     )
-
-
-@login_required
-def download_album(request, album_id):
-    album = get_object_or_404(Album, id=album_id)
-
-    try:
-        subscription = Subscription.objects.get(user=request.user)
-
-        if not subscription.active or subscription.expire_date < timezone.now():
-            return redirect("buy_subscription")
-
-    except Subscription.DoesNotExist:
-        return redirect("buy_subscription")
-
-    # اگر هنوز ZIP ساخته نشده
-    if not album.zip_url and not album.zip_url:
-        generate_album_zip(album)
-        album.refresh_from_db()
-
-    # اولویت با هاست دانلود
-    if album.zip_url:
-        return redirect(album.zip_url)
-
-    # برای آلبوم‌های قدیمی
-    if album.zip_url:
-        return redirect(album.zip_url)
-
-    messages.error(request, "فایل آلبوم موجود نیست")
-    return redirect("album_detail", album.id, album.slug_en)
 
 
 @login_required

@@ -15,11 +15,9 @@ urlpatterns = [
     path('', home, name='home'),
     path('music/<int:pk>/<str:slug_en>/', music_detail, name='music_detail'),
     path('download/<int:pk>/', download_music, name='download_music'),
-
     path('search/', search_music, name='search_music'),
     path('genre/<int:genre_id>/<str:slug_en>/', genre_musics, name='genre_musics'),
     path('popular/', popular_musics, name='popular_musics'),
-
     path('artists/', artists_list, name='artists_list'),
     path('artist/<int:artist_id>/<str:slug_en>/', artist_detail, name='artist_detail'),
     path('about/', about, name='about'),
@@ -29,10 +27,7 @@ urlpatterns = [
     path('delete-comment/<int:comment_id>/', delete_comment, name='delete_comment'),
     path('favorites/', favorite_musics, name='favorites'),
     path('search-suggestions/', search_suggestions, name='search_suggestions'),
-
-    path('album/<int:album_id>/download/', download_album, name='download_album'),
     path('album/<int:album_id>/<str:slug_en>/', album_detail, name='album_detail'),
-
     path('artist/<int:artist_id>/follow', toggle_follow_artist, name='toggle_follow_artist'),
     path('playlists/', playlists, name='playlists'),
     path('playlists/create/', create_playlist, name='create_playlist'),

@@ -10,13 +10,10 @@
           content="دانلود آلبوم {{ album.title }} از {{ album.artist.name }} همراه با تمامی ترک‌ها و دانلود مستقیم در FarMusic">
     <meta property="og:title"
           content="{{ album.title }} - {{ album.artist.name }}">
-
     <meta property="og:description"
           content="دانلود آلبوم {{ album.title }} از {{ album.artist.name }}">
-
     <meta property="og:type"
           content="music.album">
-
     <meta property="og:url"
           content="{{ request.build_absolute_uri }}">
 
@@ -96,13 +93,7 @@
                                 <span class="bg-secondary bg-opacity-25 px-2 py-1 rounded">📅 {{ album.release_date }}</span>
                             {% endif %}
                         </div>
-
-                        <a href="{% url 'download_album' album.id %}"
-                           class="btn btn-warning btn-sm fw-bold px-3 py-2 shadow-sm">
-                            ⬇ دانلود یکجای آلبوم (ZIP)
-                        </a>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -135,14 +126,14 @@
                         </button>
                     </div>
                     <div class="track-info">
-                        <div class="track-title">
+                        <div class="track-title text-truncate">
                             {{ music.title }}
                         </div>
                         <div class="track-stats">
-                            ❤️ {{ music.likes_count }}
-                            💬 {{ music.comments_count }}
-                            ⬇ {{ music.download_count }}
-                            👁 {{ music.views_count }}
+                            <span>❤️ {{ music.likes_count }}</span>
+                            <span>💬 {{ music.comments_count }}</span>
+                            <span>⬇ {{ music.download_count }}</span>
+                            <span>👁 {{ music.views_count }}</span>
                         </div>
                     </div>
                     <div class="track-download">

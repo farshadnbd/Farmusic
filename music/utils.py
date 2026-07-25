@@ -56,10 +56,6 @@ def upload_to_ftp_and_clean(instance_id, local_file_path, remote_dir="public_htm
         Music.objects.filter(id=instance_id).update(audio_url=download_url)
         music = Music.objects.select_related("album").get(id=instance_id)
 
-        if music.album:
-            music.album.zip_url = None
-            music.album.save(update_fields=["zip_url"])
-
         # ۶. پاکسازی فایل موقت از روی دیسک اصلی لیارا
         if os.path.exists(local_file_path):
             os.remove(local_file_path)
@@ -70,33 +66,3 @@ def upload_to_ftp_and_clean(instance_id, local_file_path, remote_dir="public_htm
     except Exception as e:
         print(f"❌ FTP background upload failed for Music ID {instance_id}: {e}")
         return False
-
-def upload_zip_to_ftp(local_file_path):
-    if not os.path.exists(local_file_path):
-        return None
-
-    file_name = os.path.basename(local_file_path)
-
-    ftp = ftplib.FTP()
-    ftp.connect(settings.FTP_HOST, 21, timeout=30)
-    ftp.login(settings.FTP_USER, settings.FTP_PASS)
-
-    remote_dir = "public_html/albums"
-
-    for part in remote_dir.split("/"):
-        if part:
-            try:
-                ftp.cwd(part)
-            except:
-                try:
-                    ftp.mkd(part)
-                    ftp.cwd(part)
-                except:
-                    pass
-
-    with open(local_file_path, "rb") as f:
-        ftp.storbinary(f"STOR {file_name}", f)
-
-    ftp.quit()
-
-    return f"http://{settings.DOWNLOAD_BASE_URL}/albums/{file_name}"

@@ -54,7 +54,6 @@ class Album(models.Model):
     artist = models.ForeignKey(Artist, on_delete=models.CASCADE)
     cover = models.ImageField(upload_to='albums/', blank=True, null=True)
     cover_url = models.URLField(max_length=500, blank=True, null=True)  # 👈 جدید
-    zip_url = models.URLField(max_length=500, blank=True, null=True)  # 👈 اگر بعداً فایل ZIP هم روی هاست دانلود باشد
     release_date = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -67,7 +66,6 @@ class Album(models.Model):
         return f"{self.title} - {self.artist.name}"
 
     def delete(self, *args, **kwargs):
-        delete_file_from_ftp(self.zip_url)
         delete_file_from_ftp(self.cover_url)
 
         if self.cover and self.cover.name:

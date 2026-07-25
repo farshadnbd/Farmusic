@@ -6,7 +6,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.urls import reverse
-from dashboard.utils import extract_cover, extract_metadata, extract_lyrics, generate_album_zip
+from dashboard.utils import extract_cover, extract_metadata, extract_lyrics
 from music.models import Music, Album, Artist, Comment, Genre, ArtistFollow
 from music.utils import upload_to_ftp_and_clean  # 👈 امپورت تابع آپلود FTP شما
 from accounts.models import Subscription, Notification
@@ -165,10 +165,6 @@ def bulk_upload(request):
                     )
                 )
             Notification.objects.bulk_create(notifications)
-
-            if album:
-                album.zip_url = None
-                album.save(update_fields=["zip_url"])
 
         messages.success(request,
                          f"{len(musics)} آهنگ با موفقیت به همراه تفکیک خوانندگان اضافه و فرآیند انتقال به هاست دانلود آغاز شد.")
