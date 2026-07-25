@@ -1,9 +1,9 @@
 import os
 import tempfile
 import requests
-
+from django.db.models import Q
 from django.core.management.base import BaseCommand
-from mutagen.id3 import ID3
+from mutagen.id3 import ID3, ID3NoHeaderError
 
 from music.models import Music
 from music.utils import upload_cover_to_ftp
@@ -17,32 +17,43 @@ class Command(BaseCommand):
         restored = 0
         skipped = 0
 
-        for music in Music.objects.select_related("album"):
+        musics = Music.objects.select_related("album").filter(
+            Q(cover_url__isnull=True) | Q(cover_url="")
+        )
 
-            # فقط موزیک‌هایی که کاور ندارند
-            if music.cover_url or music.cover:
-                skipped += 1
-                continue
+        for music in musics:
 
             if not music.audio_url:
                 skipped += 1
                 continue
 
             try:
-                print(f"Checking {music.id} - {music.title}")
 
-                response = requests.get(music.audio_url, timeout=60)
+                print(f"Restore -> {music.id} | {music.title}")
+
+                response = requests.get(
+                    music.audio_url,
+                    timeout=60,
+                    stream=True
+                )
 
                 if response.status_code != 200:
                     print("Audio not found")
                     continue
 
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_mp3:
-                    temp_mp3.write(response.content)
+                    for chunk in response.iter_content(8192):
+                        temp_mp3.write(chunk)
+
                     temp_mp3_path = temp_mp3.name
 
                 try:
-                    audio = ID3(temp_mp3_path)
+
+                    try:
+                        audio = ID3(temp_mp3_path)
+                    except ID3NoHeaderError:
+                        print("No ID3 tag")
+                        continue
 
                     cover_data = None
 
@@ -55,20 +66,22 @@ class Command(BaseCommand):
                         print("No cover inside mp3")
                         continue
 
-                    filename = os.path.basename(music.audio_url).replace(".mp3", ".jpg")
+                    filename = os.path.basename(
+                        music.audio_url
+                    ).replace(".mp3", ".jpg")
 
                     with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp_cover:
                         temp_cover.write(cover_data)
                         temp_cover_path = temp_cover.name
 
-                    new_path = os.path.join(
+                    final_cover = os.path.join(
                         os.path.dirname(temp_cover_path),
                         filename
                     )
 
-                    os.rename(temp_cover_path, new_path)
+                    os.rename(temp_cover_path, final_cover)
 
-                    cover_url = upload_cover_to_ftp(new_path)
+                    cover_url = upload_cover_to_ftp(final_cover)
 
                     music.cover_url = cover_url
                     music.save(update_fields=["cover_url"])
@@ -77,13 +90,14 @@ class Command(BaseCommand):
                         music.album.cover_url = cover_url
                         music.album.save(update_fields=["cover_url"])
 
-                    os.remove(new_path)
+                    os.remove(final_cover)
 
                     restored += 1
 
                     print(f"✔ Restored -> {music.title}")
 
                 finally:
+
                     if os.path.exists(temp_mp3_path):
                         os.remove(temp_mp3_path)
 
@@ -91,5 +105,5 @@ class Command(BaseCommand):
                 print(e)
 
         print("=" * 60)
-        print(f"Restored: {restored}")
-        print(f"Skipped : {skipped}")
+        print(f"Restored : {restored}")
+        print(f"Skipped  : {skipped}")
