@@ -2,45 +2,29 @@ import os
 import re
 import tempfile
 import requests
-
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.urls import reverse
-
 from music.models import TelegramFile
-from music.utils import (
-    upload_to_ftp_and_clean,
-    upload_cover_to_ftp,
-)
+from music.utils import (upload_to_ftp_and_clean, upload_cover_to_ftp, )
+
 
 def send_new_music_to_telegram(music):
     music_url = f"{settings.SITE_URL}/music/{music.id}/{music.slug_en}/"
 
-    caption = (
-        "🎵 <b>آهنگ جدید منتشر شد</b>\n\n"
-        f"🎼 {music.title}\n"
-        f"🎤 {music.artist.name if music.artist else 'ناشناس'}\n\n"
-        f"🔗 <a href='{music_url}'>مشاهده و پخش آهنگ</a>"
-    )
+    caption = ("🎵 <b>آهنگ جدید منتشر شد</b>\n\n"f"🎼 {music.title}\n"
+               f"🎤 {music.artist.name if music.artist else 'ناشناس'}\n\n"
+               f"🔗 <a href='{music_url}'>مشاهده و پخش آهنگ</a>")
 
-    api_base = getattr(
-        settings,
-        "TELEGRAM_API_BASE",
-        "https://api.telegram.org",
-    )
-
+    api_base = getattr(settings, "TELEGRAM_API_BASE", "https://api.telegram.org", )
     files = None
     photo_file = None
 
     if music.cover and hasattr(music.cover, "path"):
         url = f"{api_base}/bot{settings.TELEGRAM_BOT_TOKEN}/sendPhoto"
 
-        data = {
-            "chat_id": settings.TELEGRAM_CHAT_ID,
-            "caption": caption,
-            "parse_mode": "HTML",
-            "disable_web_page_preview": False,
-        }
+        data = {"chat_id": settings.TELEGRAM_CHAT_ID, "caption": caption, "parse_mode": "HTML",
+                "disable_web_page_preview": False, }
 
         try:
             photo_file = open(music.cover.path, "rb")
@@ -48,30 +32,15 @@ def send_new_music_to_telegram(music):
 
         except Exception:
             url = f"{api_base}/bot{settings.TELEGRAM_BOT_TOKEN}/sendMessage"
-
-            data = {
-                "chat_id": settings.TELEGRAM_CHAT_ID,
-                "text": caption,
-                "parse_mode": "HTML",
-            }
+            data = {"chat_id": settings.TELEGRAM_CHAT_ID, "text": caption, "parse_mode": "HTML", }
 
     else:
         url = f"{api_base}/bot{settings.TELEGRAM_BOT_TOKEN}/sendMessage"
-
-        data = {
-            "chat_id": settings.TELEGRAM_CHAT_ID,
-            "text": caption,
-            "parse_mode": "HTML",
-            "disable_web_page_preview": False,
-        }
+        data = {"chat_id": settings.TELEGRAM_CHAT_ID, "text": caption, "parse_mode": "HTML",
+                "disable_web_page_preview": False, }
 
     try:
-        requests.post(
-            url,
-            data=data,
-            files=files,
-            timeout=20,
-        )
+        requests.post(url, data=data, files=files, timeout=20, )
 
     except Exception as e:
         print("Telegram Send Error:", e)
@@ -79,6 +48,7 @@ def send_new_music_to_telegram(music):
     finally:
         if photo_file:
             photo_file.close()
+
 
 def process_telegram_audio(audio_data):
     """دریافت فایل صوتی از تلگرام با پروکسی، استخراج اطلاعات، ذخیره در جنگو و آپلود به هاست دانلود"""
@@ -145,8 +115,17 @@ def process_telegram_audio(audio_data):
         # ۶. مدیریت آلبوم
         album_name = metadata.get("album")
         album = None
+
         if album_name:
-            album, created = Album.objects.get_or_create(title=album_name, artist=artist)
+
+            album_title = album_name.strip()
+
+            # فقط اگر خود تگ آلبوم کلمه Single داشته باشد، آلبوم نساز
+            if "single" not in album_title.lower():
+                album, created = Album.objects.get_or_create(
+                    title=album_title,
+                    artist=artist,
+                )
 
         track_number = None
         if metadata.get("tracknumber"):
@@ -187,20 +166,54 @@ def process_telegram_audio(audio_data):
         # ۱۰. استخراج و ذخیره کاور
         cover = extract_cover(mp3_file)
 
+        # ۱۰. استخراج و ذخیره کاور
+        cover = extract_cover(mp3_file)
+
         if cover:
+
+            from PIL import Image, ImageOps
+
             music.cover.save(cover.name, cover, save=True)
 
-            # آپلود کاور به هاست دانلود
-            cover_url = upload_cover_to_ftp(music.cover.path)
+            local_cover = music.cover.path
 
-            music.cover_url = cover_url
-            music.save(update_fields=["cover_url"])
+            # ---------- Crop + Compress ----------
+            image = Image.open(local_cover).convert("RGB")
 
-            if album:
-                album.cover_url = cover_url
-                album.save(update_fields=["cover_url"])
+            image = ImageOps.fit(
+                image,
+                (400, 400),
+                Image.Resampling.LANCZOS,
+            )
 
-            # حذف فایل کاور از دیسک لیارا
+            image.save(
+                local_cover,
+                "JPEG",
+                quality=85,
+                optimize=True,
+            )
+
+            # ---------- Upload FTP ----------
+            cover_url = upload_cover_to_ftp(local_cover)
+
+            if cover_url:
+
+                music.cover_url = cover_url
+                music.save(update_fields=["cover_url"])
+
+                # فقط اگر آلبوم واقعاً چند آهنگی باشد
+                if (
+                        album
+                        and album.music_set.count() > 1
+                        and not album.cover_url
+                ):
+                    album.cover_url = cover_url
+                    album.save(update_fields=["cover_url"])
+
+            # ---------- حذف فایل از دیسک لیارا ----------
+            if os.path.exists(local_cover):
+                os.remove(local_cover)
+
             if music.cover:
                 music.cover.delete(save=False)
 
@@ -208,25 +221,15 @@ def process_telegram_audio(audio_data):
                 album.cover.delete(save=False)
 
         # ۱۱. ثبت شناسه فایل تلگرام
-        TelegramFile.objects.create(
-            file_id=file_id,
-            music=music
-        )
+        TelegramFile.objects.create(file_id=file_id, music=music)
 
         # ۱۲. انتقال فایل mp3 به هاست دانلود
         if music.file and os.path.exists(music.file.path):
 
             local_file_path = music.file.path
-
-            print(
-                f"🚀 شروع انتقال فایل تلگرامی با شناسه {music.id} به هاست دانلود..."
-            )
-
-            success = upload_to_ftp_and_clean(
-                instance_id=music.id,
-                local_file_path=local_file_path,
-                remote_dir="public_html/tracks",
-            )
+            print(f"🚀 شروع انتقال فایل تلگرامی با شناسه {music.id} به هاست دانلود...")
+            success = upload_to_ftp_and_clean(instance_id=music.id, local_file_path=local_file_path,
+                                              remote_dir="public_html/tracks", )
 
             if not success:
                 raise Exception("Upload MP3 failed")
