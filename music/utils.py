@@ -4,11 +4,10 @@ from django.conf import settings
 
 
 def upload_to_ftp_and_clean(
-    instance_id,
-    local_file_path,
-    remote_dir="public_html/tracks"
+        instance_id,
+        local_file_path,
+        remote_dir="public_html/tracks"
 ):
-
     if not os.path.exists(local_file_path):
         print(f"❌ File not found: {local_file_path}")
         return False
@@ -41,12 +40,7 @@ def upload_to_ftp_and_clean(
         with open(local_file_path, "rb") as f:
             ftp.storbinary(f"STOR {filename}", f)
 
-        remote = (
-            remote_dir
-            .replace("public_html/", "")
-            .replace("public_html", "")
-            .strip("/")
-        )
+        remote = (remote_dir.replace("public_html/", "").replace("public_html", "").strip("/"))
 
         download_url = f"http://{settings.DOWNLOAD_BASE_URL}"
 
@@ -55,9 +49,7 @@ def upload_to_ftp_and_clean(
 
         download_url += f"/{filename}"
 
-        Music.objects.filter(id=instance_id).update(
-            audio_url=download_url
-        )
+        Music.objects.filter(id=instance_id).update(audio_url=download_url)
 
         if os.path.exists(local_file_path):
             os.remove(local_file_path)
@@ -83,7 +75,6 @@ def upload_to_ftp_and_clean(
 
 
 def upload_file_to_ftp(local_file_path, remote_dir):
-
     if not os.path.exists(local_file_path):
         print("❌ Cover not found.")
         return None
@@ -92,10 +83,11 @@ def upload_file_to_ftp(local_file_path, remote_dir):
     ftp = None
 
     try:
-
         ftp = ftplib.FTP()
         ftp.connect(settings.FTP_HOST, 21, timeout=30)
         ftp.login(settings.FTP_USER, settings.FTP_PASS)
+        print("PWD =", ftp.pwd())
+        print("LIST =", ftp.nlst())
 
         for part in remote_dir.split("/"):
             if not part:
@@ -111,12 +103,7 @@ def upload_file_to_ftp(local_file_path, remote_dir):
         with open(local_file_path, "rb") as f:
             ftp.storbinary(f"STOR {filename}", f)
 
-        remote = (
-            remote_dir
-            .replace("public_html/", "")
-            .replace("public_html", "")
-            .strip("/")
-        )
+        remote = (remote_dir.replace("public_html/", "").replace("public_html", "").strip("/"))
 
         url = f"http://{settings.DOWNLOAD_BASE_URL}"
 
@@ -139,7 +126,4 @@ def upload_file_to_ftp(local_file_path, remote_dir):
 
 
 def upload_cover_to_ftp(local_file_path):
-    return upload_file_to_ftp(
-        local_file_path,
-        "public_html/covers",
-    )
+    return upload_file_to_ftp(local_file_path, "public_html/covers", )
