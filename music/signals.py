@@ -41,10 +41,3 @@ def delete_music_files(sender, instance, **kwargs):
 
     if instance.cover:
         instance.cover.delete(save=False)
-
-@receiver(post_delete, sender=Album)
-def delete_album_files(sender, instance, **kwargs):
-    delete_file_from_ftp(instance.cover_url)
-
-    if instance.cover:
-        instance.cover.delete(save=False)

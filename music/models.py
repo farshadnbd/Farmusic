@@ -66,11 +66,7 @@ class Album(models.Model):
         return f"{self.title} - {self.artist.name}"
 
     def delete(self, *args, **kwargs):
-        delete_file_from_ftp(self.cover_url)
-
-        if self.cover and self.cover.name:
-            self.cover.delete(save=False)
-
+        # هیچ فایل کاوری حذف نشود
         super().delete(*args, **kwargs)
 
 
