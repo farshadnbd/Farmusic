@@ -7,7 +7,7 @@ from django.core.files.base import ContentFile
 from django.urls import reverse
 from music.models import TelegramFile
 from music.utils import (upload_to_ftp_and_clean, upload_cover_to_ftp, )
-
+from PIL import Image, ImageOps
 
 def send_new_music_to_telegram(music):
     music_url = f"{settings.SITE_URL}/music/{music.id}/{music.slug_en}/"
@@ -167,28 +167,12 @@ def process_telegram_audio(audio_data):
         cover = extract_cover(mp3_file)
 
         if cover:
-
-            from PIL import Image, ImageOps
-
             music.cover.save(cover.name, cover, save=True)
-
             local_cover = music.cover.path
-
             # ---------- Crop + Compress ----------
             image = Image.open(local_cover).convert("RGB")
-
-            image = ImageOps.fit(
-                image,
-                (400, 400),
-                Image.Resampling.LANCZOS,
-            )
-
-            image.save(
-                local_cover,
-                "JPEG",
-                quality=85,
-                optimize=True,
-            )
+            image = ImageOps.fit(image,(400, 400),Image.Resampling.LANCZOS,)
+            image.save(local_cover,"JPEG",quality=85,optimize=True,)
 
             # ---------- Upload FTP ----------
             cover_url = upload_cover_to_ftp(local_cover)
