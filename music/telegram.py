@@ -117,9 +117,7 @@ def process_telegram_audio(audio_data):
         album = None
 
         if album_name:
-
             album_title = album_name.strip()
-
             # فقط اگر خود تگ آلبوم کلمه Single داشته باشد، آلبوم نساز
             if "single" not in album_title.lower():
                 album, created = Album.objects.get_or_create(title=album_title,artist=artist,)
@@ -182,8 +180,7 @@ def process_telegram_audio(audio_data):
                 music.save(update_fields=["cover_url"])
 
                 # فقط اگر آلبوم واقعاً چند آهنگی باشد
-                if (album and album.music_set.count() > 1 and not album.cover_url
-                ):
+                if album:
                     album.cover_url = cover_url
                     album.save(update_fields=["cover_url"])
 
@@ -193,7 +190,6 @@ def process_telegram_audio(audio_data):
 
             if music.cover:
                 music.cover.delete(save=False)
-
             if album and album.cover:
                 album.cover.delete(save=False)
 
