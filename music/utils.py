@@ -103,6 +103,11 @@ def upload_file_to_ftp(local_file_path, remote_dir):
         with open(local_file_path, "rb") as f:
             ftp.storbinary(f"STOR {filename}", f)
 
+        print("PWD AFTER =", ftp.pwd())
+        files = ftp.nlst()
+        print("FILE EXISTS =", filename in files)
+        print("FILES =", files[:20])
+
         remote = (remote_dir.replace("public_html/", "").replace("public_html", "").strip("/"))
 
         url = f"http://{settings.DOWNLOAD_BASE_URL}"
