@@ -1,25 +1,18 @@
 import os
 import ftplib
 from django.conf import settings
+from music.models import Music
 
-
-def upload_to_ftp_and_clean(
-        instance_id,
-        local_file_path,
-        remote_dir="public_html/tracks"
-):
+def upload_to_ftp_and_clean(instance_id, local_file_path, remote_dir="public_html/tracks"):
     if not os.path.exists(local_file_path):
         print(f"❌ File not found: {local_file_path}")
         return False
-
-    from music.models import Music
 
     filename = os.path.basename(local_file_path)
     ftp = None
 
     try:
         print(f"⚡ Connecting FTP...")
-
         ftp = ftplib.FTP()
         ftp.connect(settings.FTP_HOST, 21, timeout=30)
         ftp.login(settings.FTP_USER, settings.FTP_PASS)
@@ -36,6 +29,7 @@ def upload_to_ftp_and_clean(
                 ftp.cwd(part)
 
         print(f"📤 Uploading {filename}")
+        ftp.sendcmd("TYPE I")
 
         with open(local_file_path, "rb") as f:
             ftp.storbinary(f"STOR {filename}", f)
@@ -43,10 +37,12 @@ def upload_to_ftp_and_clean(
             files = ftp.nlst()
             print("MP3 EXISTS =", filename in files)
             print("MP3 FILES =", files[:20])
+            size = ftp.size(filename)
+            print("REMOTE SIZE =", size)
 
         remote = (remote_dir.replace("public_html/", "").replace("public_html", "").strip("/"))
-
-        download_url = f"http://{settings.DOWNLOAD_BASE_URL}"
+        download_url = f"https://{settings.DOWNLOAD_BASE_URL}"
+        print("DOWNLOAD URL =", download_url)
 
         if remote:
             download_url += f"/{remote}"
@@ -114,7 +110,7 @@ def upload_file_to_ftp(local_file_path, remote_dir):
 
         remote = (remote_dir.replace("public_html/", "").replace("public_html", "").strip("/"))
 
-        url = f"http://{settings.DOWNLOAD_BASE_URL}"
+        url = f"https://{settings.DOWNLOAD_BASE_URL}"
 
         if remote:
             url += f"/{remote}"
