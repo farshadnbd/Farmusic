@@ -5,39 +5,63 @@ from music.models import TelegramFile
 
 LAST_UPDATE = 0
 
+
 def check_updates():
     global LAST_UPDATE
 
-    # 🟢 گرفتن آدرس پروکسی از تنظیمات برای برقراری ارتباط بدون فیلتر در ایران
-    api_base = getattr(settings, 'TELEGRAM_API_BASE', 'https://api.telegram.org')
-    url = f"{api_base}/bot{settings.TELEGRAM_BOT_TOKEN}/getUpdates?offset={LAST_UPDATE + 1}"
+    api_base = getattr(
+        settings,
+        "TELEGRAM_API_BASE",
+        "https://api.telegram.org",
+    )
+
+    url = (
+        f"{api_base}/bot{settings.TELEGRAM_BOT_TOKEN}"
+        f"/getUpdates?offset={LAST_UPDATE + 1}&timeout=20"
+    )
 
     try:
-        response = requests.get(url, timeout=20).json()
+        response = requests.get(
+            url,
+            timeout=30,
+        ).json()
 
         if not response.get("ok"):
-            print("❌ خطا در دریافت آپدیت‌ها از تلگرام:", response)
+            print("❌ Telegram Error:", response)
             return
 
-        for update in response["result"]:
+        for update in response.get("result", []):
+
             LAST_UPDATE = update["update_id"]
 
-            message = update.get("channel_post") or update.get("message")
+            message = (
+                update.get("channel_post")
+                or update.get("message")
+            )
 
             if not message:
                 continue
 
-            if "audio" in message:
-                audio_data = message["audio"]
-                file_id = audio_data.get('file_id')
+            audio = message.get("audio")
 
-                # چک کردن تکراری بودن قبل از شروع دانلود برای بهینه‌سازی پهنای باند سرور
-                if TelegramFile.objects.filter(file_id=file_id).exists():
-                    print(f"⛔ آهنگ تکراری است و دانلود نمی‌شود: {audio_data.get('title', '')}")
-                    continue
+            if not audio:
+                continue
 
-                print("🎵 فایل صوتی جدید تلگرام شناسایی شد. شروع پردازش و دانلود...")
-                process_telegram_audio(audio_data)
+            file_id = audio["file_id"]
+
+            if TelegramFile.objects.filter(
+                file_id=file_id
+            ).exists():
+                print(
+                    f"⛔ Duplicate: {audio.get('title', '')}"
+                )
+                continue
+
+            print(
+                f"🎵 New Telegram Music: {audio.get('title', '')}"
+            )
+
+            process_telegram_audio(audio)
 
     except Exception as e:
         print("Polling Error:", e)
