@@ -4,23 +4,25 @@ import requests
 
 
 class Command(BaseCommand):
-    help = "Find musics whose audio file does not exist on download host"
+    help = "Find and remove broken musics"
 
     def check_remote(self, url):
         if not url:
             return True, "No audio_url"
 
         try:
-            response = requests.head(
+            r = requests.get(
                 url,
-                timeout=5,
+                stream=True,
+                timeout=(3, 5),
                 allow_redirects=True,
             )
 
-            if response.status_code != 200:
-                return True, f"HTTP {response.status_code}"
+            if r.status_code != 200:
+                return True, f"HTTP {r.status_code}"
 
-            size = int(response.headers.get("Content-Length", 0))
+            size = int(r.headers.get("Content-Length", 0))
+            r.close()
 
             if size == 0:
                 return True, "0 Byte"
@@ -36,38 +38,32 @@ class Command(BaseCommand):
 
         queryset = Music.objects.select_related("artist")
 
-        print(f"Checking {queryset.count()} musics...")
+        total = queryset.count()
 
-        for music in queryset:
+        for index, music in enumerate(queryset, start=1):
 
-            reason = None
+            print(f"[{index}/{total}] {music.title}")
 
-            # همیشه فایل را بررسی کن
-            bad, why = self.check_remote(music.audio_url)
+            reason = []
 
             if music.artist is None:
-                reason = "Artist=None"
+                reason.append("Artist=None")
 
             elif music.artist.name.strip().lower() == "unknown artist":
-                reason = "Unknown Artist"
+                reason.append("Unknown Artist")
 
-            elif not music.audio_url:
-                reason = "No audio_url"
+            bad, why = self.check_remote(music.audio_url)
 
-            elif bad:
-                reason = why
+            if bad:
+                reason.append(why)
 
             if reason:
-                broken.append((music, reason))
+                broken.append((music, " | ".join(reason)))
 
         print("=" * 80)
 
         for music, reason in broken:
-            artist = music.artist.name if music.artist else "None"
-
-            print(
-                f"{music.id} | {artist} | {music.title} | {reason}"
-            )
+            print(f"{music.id} | {music.title} | {reason}")
 
         print("=" * 80)
         print(f"Found {len(broken)} broken musics")
@@ -82,14 +78,13 @@ class Command(BaseCommand):
 
         for music, reason in broken:
 
-            print(f"Deleting -> {music.id} | {music.title}")
+            print(f"Deleting: {music.id} | {music.title}")
 
             try:
                 music.delete()
                 deleted += 1
-
             except Exception as e:
-                print(f"ERROR {music.id}: {e}")
+                print(f"ERROR: {e}")
 
         print("=" * 80)
         print(f"Deleted: {deleted}")
