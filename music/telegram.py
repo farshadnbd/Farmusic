@@ -122,10 +122,7 @@ def process_telegram_audio(audio_data):
 
             # فقط اگر خود تگ آلبوم کلمه Single داشته باشد، آلبوم نساز
             if "single" not in album_title.lower():
-                album, created = Album.objects.get_or_create(
-                    title=album_title,
-                    artist=artist,
-                )
+                album, created = Album.objects.get_or_create(title=album_title,artist=artist,)
 
         track_number = None
         if metadata.get("tracknumber"):
