@@ -39,6 +39,10 @@ def upload_to_ftp_and_clean(
 
         with open(local_file_path, "rb") as f:
             ftp.storbinary(f"STOR {filename}", f)
+            print("PWD AFTER MP3 =", ftp.pwd())
+            files = ftp.nlst()
+            print("MP3 EXISTS =", filename in files)
+            print("MP3 FILES =", files[:20])
 
         remote = (remote_dir.replace("public_html/", "").replace("public_html", "").strip("/"))
 
