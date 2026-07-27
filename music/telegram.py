@@ -178,15 +178,11 @@ def process_telegram_audio(audio_data):
             cover_url = upload_cover_to_ftp(local_cover)
 
             if cover_url:
-
                 music.cover_url = cover_url
                 music.save(update_fields=["cover_url"])
 
                 # فقط اگر آلبوم واقعاً چند آهنگی باشد
-                if (
-                        album
-                        and album.music_set.count() > 1
-                        and not album.cover_url
+                if (album and album.music_set.count() > 1 and not album.cover_url
                 ):
                     album.cover_url = cover_url
                     album.save(update_fields=["cover_url"])
