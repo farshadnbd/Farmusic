@@ -43,7 +43,6 @@ def upload_to_ftp_and_clean(instance_id, local_file_path, remote_dir="public_htm
             download_url += f"/{remote}"
 
         download_url += f"/{filename}"
-
         Music.objects.filter(id=instance_id).update(audio_url=download_url)
 
         if os.path.exists(local_file_path):
@@ -99,9 +98,7 @@ def upload_file_to_ftp(local_file_path, remote_dir):
             ftp.storbinary(f"STOR {filename}", f)
 
         print("PWD AFTER =", ftp.pwd())
-
         remote = (remote_dir.replace("public_html/", "").replace("public_html", "").strip("/"))
-
         url = f"https://{settings.DOWNLOAD_BASE_URL}"
 
         if remote:
@@ -120,7 +117,6 @@ def upload_file_to_ftp(local_file_path, remote_dir):
                     ftp.close()
                 except:
                     pass
-
 
 def upload_cover_to_ftp(local_file_path):
     return upload_file_to_ftp(local_file_path, "public_html/covers", )

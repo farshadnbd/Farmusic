@@ -1,6 +1,5 @@
 import os
 import re
-import tempfile
 import requests
 from django.conf import settings
 from django.core.files.base import ContentFile
@@ -8,6 +7,21 @@ from django.urls import reverse
 from music.models import TelegramFile
 from music.utils import (upload_to_ftp_and_clean, upload_cover_to_ftp, )
 from PIL import Image, ImageOps
+from pathlib import Path
+import unicodedata
+
+def safe_filename(filename):
+    name = Path(filename).stem
+    ext = Path(filename).suffix.lower()
+
+    name = name.strip()
+    name = re.sub(r'[<>:"/\\|?*]', "", name)
+    name = unicodedata.normalize("NFKD", name)
+    name = re.sub(r"[^\w\s-]", "", name)
+    name = re.sub(r"[\s_]+", "-", name)
+    name = re.sub(r"-+", "-", name)
+
+    return name.strip("-").lower() + ext
 
 def send_new_music_to_telegram(music):
     music_url = f"{settings.SITE_URL}/music/{music.id}/{music.slug_en}/"
@@ -43,7 +57,7 @@ def send_new_music_to_telegram(music):
         requests.post(url, data=data, files=files, timeout=20, )
 
     except Exception as e:
-        print("Telegram Send Error:", e)
+            print("Telegram Send Error:", e)
 
     finally:
         if photo_file:
@@ -84,13 +98,24 @@ def process_telegram_audio(audio_data):
         # ۲. دانلود بایت‌های فایل صوتی
         print(f"📥 در حال دانلود آهنگ از تلگرام (پروکسی): {file_name}")
         file_content = requests.get(download_url, timeout=45).content
+
+        # اول موقتاً با اسم اصلی بساز
         mp3_file = ContentFile(file_content, name=file_name)
-        # ۳. استخراج متاداده‌ها
+
+        # متادیتا را بخوان
         metadata = extract_metadata(mp3_file)
+
         raw_artist = metadata.get("artist") or audio_data.get("performer") or "Unknown Artist"
         title = metadata.get("title") or audio_data.get("title") or file_name.replace(".mp3", "")
+
+        generated_name = f"{raw_artist} - {title}.mp3"
+        safe_name = safe_filename(generated_name)
+        mp3_file.name = safe_name
         # ۴. تفکیک خواننده‌ها
-        split_pattern = re.compile(r'\s+(?:ft\.?|feat\.?|&|/|and)\s+|[,\u060C]', re.IGNORECASE)
+        split_pattern = re.compile(
+            r'\s+(?:ft\.?|feat\.?|&|/|and)\s+|[,\u060C]',
+            re.IGNORECASE
+        )
         artist_names = [name.strip() for name in split_pattern.split(raw_artist) if name.strip()]
 
         if not artist_names:
@@ -106,11 +131,18 @@ def process_telegram_audio(audio_data):
             display_title = title
 
         # ۵. مدیریت ژانر
-        genre_name = metadata.get("genre") or "Unknown"
-        for separator in ["&", "/", "and"]:
-            if separator in genre_name:
-                genre_name = genre_name.split(separator)[0]
-        genre, _ = Genre.objects.get_or_create(name=genre_name.strip())
+        genre_name = (metadata.get("genre") or "").strip()
+
+        invalid_genres = {"", "unknown", "none", "null", "n/a", "undefined", }
+
+        if genre_name.lower() in invalid_genres:
+            genre = None
+        else:
+            for separator in ["&", "/", "and"]:
+                if separator in genre_name:
+                    genre_name = genre_name.split(separator)[0].strip()
+
+            genre, _ = Genre.objects.get_or_create(name=genre_name)
 
         # ۶. مدیریت آلبوم
         album_name = metadata.get("album")
@@ -120,7 +152,7 @@ def process_telegram_audio(audio_data):
             album_title = album_name.strip()
             # فقط اگر خود تگ آلبوم کلمه Single داشته باشد، آلبوم نساز
             if "single" not in album_title.lower():
-                album, created = Album.objects.get_or_create(title=album_title,artist=artist,)
+                album, created = Album.objects.get_or_create(title=album_title, artist=artist, )
 
         track_number = None
         if metadata.get("tracknumber"):
@@ -140,7 +172,6 @@ def process_telegram_audio(audio_data):
         music = Music.objects.create(title=display_title, artist=artist, genre=genre, album=album, file=mp3_file,
                                      track_number=track_number, year=year, lyrics=lyrics,
                                      search_aliases=search_aliases_combined)
-
         # ۸. متصل کردن ManyToMany آرتیست‌ها
         for name in artist_names:
             art_obj, _ = Artist.objects.get_or_create(name=name.strip())
@@ -161,16 +192,13 @@ def process_telegram_audio(audio_data):
         # ۱۰. استخراج و ذخیره کاور
         cover = extract_cover(mp3_file)
 
-        # ۱۰. استخراج و ذخیره کاور
-        cover = extract_cover(mp3_file)
-
         if cover:
             music.cover.save(cover.name, cover, save=True)
             local_cover = music.cover.path
             # ---------- Crop + Compress ----------
             image = Image.open(local_cover).convert("RGB")
-            image = ImageOps.fit(image,(400, 400),Image.Resampling.LANCZOS,)
-            image.save(local_cover,"JPEG",quality=85,optimize=True,)
+            image = ImageOps.fit(image, (400, 400), Image.Resampling.LANCZOS, )
+            image.save(local_cover, "JPEG", quality=85, optimize=True, )
 
             # ---------- Upload FTP ----------
             cover_url = upload_cover_to_ftp(local_cover)

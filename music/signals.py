@@ -1,6 +1,5 @@
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
-
 from .models import Music, Album
 from .ftp import delete_file_from_ftp
 

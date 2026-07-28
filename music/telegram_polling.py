@@ -5,7 +5,6 @@ from music.models import TelegramFile
 
 LAST_UPDATE = 0
 
-
 def check_updates():
     global LAST_UPDATE
 
