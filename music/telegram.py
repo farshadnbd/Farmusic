@@ -144,7 +144,7 @@ def process_telegram_audio(audio_data):
         mp3_file.name = safe_name
         # ۴. تفکیک خواننده‌ها
         split_pattern = re.compile(
-            r'\s+(?:ft\.?|feat\.?|&|/|and)\s+|[,\u060C]',
+            r'\s+(?:ft\.?|feat\.?|&|/|and|feat.)\s+|[,\u060C]',
             re.IGNORECASE
         )
         artist_names = [name.strip() for name in split_pattern.split(raw_artist) if name.strip()]
