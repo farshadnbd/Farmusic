@@ -34,14 +34,9 @@ def upload_to_ftp_and_clean(instance_id, local_file_path, remote_dir="public_htm
         with open(local_file_path, "rb") as f:
             ftp.storbinary(f"STOR {filename}", f)
             print("PWD AFTER MP3 =", ftp.pwd())
-            files = ftp.nlst()
-            print("MP3 EXISTS =", filename in files)
-            print("MP3 FILES =", files[:20])
-            size = ftp.size(filename)
-            print("REMOTE SIZE =", size)
 
         remote = (remote_dir.replace("public_html/", "").replace("public_html", "").strip("/"))
-        download_url = f"http://{settings.DOWNLOAD_BASE_URL}"
+        download_url = f"https://{settings.DOWNLOAD_BASE_URL}"
         print("DOWNLOAD URL =", download_url)
 
         if remote:
@@ -104,13 +99,10 @@ def upload_file_to_ftp(local_file_path, remote_dir):
             ftp.storbinary(f"STOR {filename}", f)
 
         print("PWD AFTER =", ftp.pwd())
-        files = ftp.nlst()
-        print("FILE EXISTS =", filename in files)
-        print("FILES =", files[:20])
 
         remote = (remote_dir.replace("public_html/", "").replace("public_html", "").strip("/"))
 
-        url = f"http://{settings.DOWNLOAD_BASE_URL}"
+        url = f"https://{settings.DOWNLOAD_BASE_URL}"
 
         if remote:
             url += f"/{remote}"
