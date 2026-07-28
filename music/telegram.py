@@ -1,6 +1,8 @@
 import os
 import re
 import requests
+import time
+from requests.exceptions import RequestException
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.urls import reverse
@@ -85,20 +87,49 @@ def process_telegram_audio(audio_data):
     api_base = getattr(settings, 'TELEGRAM_API_BASE', 'https://api.telegram.org')
 
     try:
-        # ۱. گرفتن مسیر فایل از سرور تلگرام با استفاده از پروکسی
         get_file_url = f"{api_base}/bot{settings.TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}"
-        file_info_res = requests.get(get_file_url, timeout=15).json()
 
-        if not file_info_res.get('ok'):
-            print("❌ خطا در دریافت اطلاعات فایل از تلگرام:", file_info_res)
+        file_info_res = None
+
+        for attempt in range(5):
+            try:
+                response = requests.get(get_file_url, timeout=15)
+                file_info_res = response.json()
+
+                if file_info_res.get("ok"):
+                    break
+
+            except RequestException as e:
+                print(f"🔄 getFile Retry {attempt + 1}/5 : {e}")
+
+            time.sleep(2)
+
+        if not file_info_res or not file_info_res.get("ok"):
+            print("❌ getFile Failed")
             return False
 
         file_path = file_info_res['result']['file_path']
         download_url = f"{api_base}/file/bot{settings.TELEGRAM_BOT_TOKEN}/{file_path}"
         # ۲. دانلود بایت‌های فایل صوتی
         print(f"📥 در حال دانلود آهنگ از تلگرام (پروکسی): {file_name}")
-        file_content = requests.get(download_url, timeout=45).content
+        file_content = None
 
+        for attempt in range(5):
+            try:
+                r = requests.get(download_url, timeout=45)
+                file_content = r.content
+
+                if file_content:
+                    break
+
+            except RequestException as e:
+                print(f"🔄 Download Retry {attempt + 1}/5 : {e}")
+
+            time.sleep(2)
+
+        if not file_content:
+            print("❌ Download Failed")
+            return False
         # اول موقتاً با اسم اصلی بساز
         mp3_file = ContentFile(file_content, name=file_name)
 
@@ -226,8 +257,10 @@ def process_telegram_audio(audio_data):
 
         # ۱۲. انتقال فایل mp3 به هاست دانلود
         if music.file and os.path.exists(music.file.path):
-
             local_file_path = music.file.path
+            if not os.path.exists(local_file_path):
+                raise Exception("Local MP3 Missing")
+
             print(f"🚀 شروع انتقال فایل تلگرامی با شناسه {music.id} به هاست دانلود...")
             success = upload_to_ftp_and_clean(instance_id=music.id, local_file_path=local_file_path,
                                               remote_dir="public_html/tracks", )
