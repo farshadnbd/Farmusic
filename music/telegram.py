@@ -6,16 +6,17 @@ from requests.exceptions import RequestException
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.urls import reverse
+from dashboard.utils import normalize_genre
 from music.models import TelegramFile
 from music.utils import (upload_to_ftp_and_clean, upload_cover_to_ftp, )
 from PIL import Image, ImageOps
 from pathlib import Path
 import unicodedata
 
+
 def safe_filename(filename):
     name = Path(filename).stem
     ext = Path(filename).suffix.lower()
-
     name = name.strip()
     name = re.sub(r'[<>:"/\\|?*]', "", name)
     name = unicodedata.normalize("NFKD", name)
@@ -25,12 +26,12 @@ def safe_filename(filename):
 
     return name.strip("-").lower() + ext
 
+
 def send_new_music_to_telegram(music):
     music_url = f"{settings.SITE_URL}/music/{music.id}/{music.slug_en}/"
 
     caption = ("🎵 <b>آهنگ جدید منتشر شد</b>\n\n"f"🎼 {music.title}\n"
-               f"🎤 {music.artist.name if music.artist else 'ناشناس'}\n\n"
-               f"🔗 <a href='{music_url}'>مشاهده و پخش آهنگ</a>")
+               f"🎤 {music.artist.name if music.artist else 'ناشناس'}\n\n" f"🔗 <a href='{music_url}'>مشاهده و پخش آهنگ</a>")
 
     api_base = getattr(settings, "TELEGRAM_API_BASE", "https://api.telegram.org", )
     files = None
@@ -59,7 +60,7 @@ def send_new_music_to_telegram(music):
         requests.post(url, data=data, files=files, timeout=20, )
 
     except Exception as e:
-            print("Telegram Send Error:", e)
+        print("Telegram Send Error:", e)
 
     finally:
         if photo_file:
@@ -88,7 +89,6 @@ def process_telegram_audio(audio_data):
 
     try:
         get_file_url = f"{api_base}/bot{settings.TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}"
-
         file_info_res = None
 
         for attempt in range(5):
@@ -132,10 +132,8 @@ def process_telegram_audio(audio_data):
             return False
         # اول موقتاً با اسم اصلی بساز
         mp3_file = ContentFile(file_content, name=file_name)
-
         # متادیتا را بخوان
         metadata = extract_metadata(mp3_file)
-
         raw_artist = metadata.get("artist") or audio_data.get("performer") or "Unknown Artist"
         title = metadata.get("title") or audio_data.get("title") or file_name.replace(".mp3", "")
 
@@ -162,17 +160,11 @@ def process_telegram_audio(audio_data):
             display_title = title
 
         # ۵. مدیریت ژانر
-        genre_name = (metadata.get("genre") or "").strip()
+        genre_name = normalize_genre(metadata.get("genre"))
 
-        invalid_genres = {"", "unknown", "none", "null", "n/a", "undefined", }
-
-        if genre_name.lower() in invalid_genres:
+        if genre_name == "Unknown":
             genre = None
         else:
-            for separator in ["&", "/", "and"]:
-                if separator in genre_name:
-                    genre_name = genre_name.split(separator)[0].strip()
-
             genre, _ = Genre.objects.get_or_create(name=genre_name)
 
         # ۶. مدیریت آلبوم

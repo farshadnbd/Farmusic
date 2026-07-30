@@ -6,6 +6,7 @@ import tempfile
 from django.core.files import File
 import requests
 
+
 def extract_metadata(mp3_file):
     try:
         # حتماً نشانگر فایل به ابتدای فایل هدایت شود
@@ -74,3 +75,102 @@ def extract_lyrics(mp3_file):
         pass
     return None
 
+
+def normalize_genre(genre_name):
+    invalid_genres = {"", "unknown", "none", "null", "n/a", "undefined"}
+
+    if not genre_name:
+        return "Unknown"
+
+    genre_name = genre_name.strip()
+
+    if genre_name.lower() in invalid_genres:
+        return "Unknown"
+
+    g = (genre_name.lower().replace("_", " ").replace("-", " ").replace("/", " ").replace("&", " ").replace(",", " "))
+
+    # Hip Hop / Rap
+    if any(x in g for x in ["rap", "hip hop", "hiphop", "trap"]):
+        return "Hip_Hop"
+
+    # Pop
+    if "pop" in g:
+        return "Pop"
+
+    # Rock
+    if any(x in g for x in ["rock", "hard rock", "soft rock", "alternative rock"]):
+        return "Rock"
+
+    # Metal
+    if "metal" in g:
+        return "Metal"
+
+    # Electronic
+    if any(x in g for x in ["edm", "electronic", "electro"]):
+        return "Electronic"
+
+    # House
+    if "house" in g:
+        return "House"
+
+    # Techno
+    if "techno" in g:
+        return "Techno"
+
+    # Trance
+    if "trance" in g:
+        return "Trance"
+
+    # Dance
+    if "dance" in g:
+        return "Dance"
+
+    # Dubstep
+    if "dubstep" in g:
+        return "Dubstep"
+
+    # Jazz
+    if "jazz" in g:
+        return "Jazz"
+
+    # Blues
+    if "blues" in g:
+        return "Blues"
+
+    # Country
+    if "country" in g:
+        return "Country"
+
+    # Folk
+    if "folk" in g:
+        return "Folk"
+
+    # Classical
+    if any(x in g for x in ["classical", "orchestra", "orchestral", "instrumental"]):
+        return "Classical"
+
+    # Soundtrack
+    if any(x in g for x in ["soundtrack", "ost", "score"]):
+        return "Soundtrack"
+
+    # Lo-Fi
+    if any(x in g for x in ["lofi", "lo fi", "lo-fi"]):
+        return "Lo_Fi"
+
+    # Ambient
+    if "ambient" in g:
+        return "Ambient"
+
+    # Reggae
+    if "reggae" in g:
+        return "Reggae"
+
+    # Latin
+    if any(x in g for x in ["latin", "latino"]):
+        return "Latin"
+
+    # R&B
+    if any(x in g for x in ["r&b", "rnb"]):
+        return "R&B"
+
+    return genre_name.title()
