@@ -2,6 +2,8 @@ import os
 import ftplib
 from django.conf import settings
 from music.models import Music
+import requests
+
 
 def upload_to_ftp_and_clean(instance_id, local_file_path, remote_dir="public_html/tracks"):
     if not os.path.exists(local_file_path):
@@ -118,5 +120,21 @@ def upload_file_to_ftp(local_file_path, remote_dir):
                 except:
                     pass
 
+
 def upload_cover_to_ftp(local_file_path):
     return upload_file_to_ftp(local_file_path, "public_html/covers", )
+
+
+def remote_file_exists(url):
+    if not url:
+        return False
+
+    try:
+        r = requests.head(url, timeout=15, allow_redirects=True)
+        if r.status_code == 200:
+            return True
+
+    except Exception:
+        pass
+
+    return False
