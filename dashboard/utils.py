@@ -91,7 +91,7 @@ def normalize_genre(genre_name):
 
     # Hip Hop / Rap
     if any(x in g for x in ["rap", "hip hop", "hiphop", "trap"]):
-        return "Hip_Hop"
+        return "Hip-Hop"
 
     # Pop
     if "pop" in g:
