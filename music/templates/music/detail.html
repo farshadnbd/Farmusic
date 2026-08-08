@@ -87,7 +87,12 @@
                  style="background: #1e1e1e; border: 1px solid #2a2a2a; min-height: 480px;">
 
                 <div class="mb-3">
-                    <h1 class="music-detail-title m-0 fs-2 fw-bold text-white text-end">{{ music.title }}</h1>
+                    <h1 class="music-detail-title m-0 fs-2 fw-bold text-white text-end">
+                        {{ display_title }}
+                    </h1>
+                    <p class="text-secondary small mt-2 mb-3 text-end">
+                        {{ seo_subtitle }}
+                    </p>
                 </div>
 
                 <div class="d-flex flex-wrap gap-3 align-items-center mb-4">
@@ -310,9 +315,19 @@
                                 data-title="{{ item.title }}"
                                 data-artist="
 
+
+
+
+
+
                                         {% if item.artists.exists %}{% for art in item.artists.all %}{{ art.name }}{% if not forloop.last %} & {% endif %}{% endfor %}{% else %}{{ item.artist.name }}{% endif %}"
                                 data-is-vip="{{ item.is_vip|yesno:'true,false' }}"
                                 data-cover-url="
+
+
+
+
+
 
                                         {% if item.cover_url %}{{ item.cover_url }}{% elif item.cover %}{% thumbnail item.cover 'music_card' %}{% else %}{% static 'images/default-cover.jpg' %}{% endif %}">
                             ▶
@@ -416,6 +431,11 @@
 
 
 
+
+
+
+
+
                                             {% if comment.user.profile.avatar %}{{ comment.user.profile.avatar.url }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}"
                                          class="nav-avatar" alt="آواتار {{ comment.user.username }}" loading="lazy"
                                          style="width: 45px; height: 45px; border-radius: 50%;">
@@ -439,6 +459,11 @@
                                         <div class="card-body p-3">
                                             <div class="d-flex align-items-center gap-2 mb-2">
                                                 <img src="
+
+
+
+
+
 
 
 
@@ -536,10 +561,7 @@
                     try {
                         const response = await fetch(url, {
                             method: 'POST',
-                            headers: {
-                                'X-CSRFToken': '{{ csrf_token }}',
-                                'X-Requested-With': 'XMLHttpRequest',
-                            },
+                            headers: {'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest',},
                         });
 
                         const data = await response.json();
@@ -582,9 +604,7 @@
                     const response = await fetch(url, {
                         method: 'POST',
                         body: formData,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
+                        headers: {'X-Requested-With': 'XMLHttpRequest'}
                     });
 
                     const data = await response.json();

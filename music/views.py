@@ -65,6 +65,39 @@ def music_detail(request, pk, slug_en=None):
     if request.user.is_authenticated:
         playlists = Playlist.objects.filter(user=request.user)
 
+    # ---------- عنوان نمایشی ----------
+    if music.search_aliases:
+        display_title = f"{music.search_aliases} ({music.title})"
+    else:
+        display_title = music.title
+
+    # ---------- متن سئو ----------
+    artists = music.artists.all()
+
+    if music.search_aliases:
+
+        artist_display = []
+
+        for art in artists:
+            if art.search_aliases:
+                artist_display.append(art.search_aliases)
+            else:
+                artist_display.append(art.name)
+
+        seo_subtitle = (
+            f"دانلود آهنگ {music.search_aliases} از "
+            f"{' و '.join(artist_display)} | {music.title}"
+        )
+
+    else:
+
+        artist_display = [art.name for art in artists]
+
+        seo_subtitle = (
+            f"دانلود آهنگ {music.title} از "
+            f"{' و '.join(artist_display)}"
+        )
+
     # 🟢 محاسبه وضعیت اشتراک برای اسکریپت سراسری VIP
     user_has_vip = False
     if request.user.is_authenticated:
@@ -82,7 +115,8 @@ def music_detail(request, pk, slug_en=None):
 
     return render(request, 'music/detail.html',
                   {'music': music, 'can_download': can_download, 'related_musics': related_musics, 'comments': comments,
-                   'playlists': playlists, 'user_has_vip': user_has_vip, })
+                   'playlists': playlists, 'user_has_vip': user_has_vip, 'display_title': display_title,
+                   'seo_subtitle': seo_subtitle, })
 
 
 def download_music(request, pk):

@@ -151,7 +151,6 @@ def process_telegram_audio(audio_data):
             artist_names = ["Unknown Artist"]
         main_artist_name = artist_names[0]
         artist, _ = Artist.objects.get_or_create(name=main_artist_name)
-        search_aliases_combined = ", ".join(artist_names)
 
         if len(artist_names) > 1:
             featured_artists_str = ", ".join(artist_names[1:])
@@ -194,7 +193,7 @@ def process_telegram_audio(audio_data):
         # ۷. ذخیره موقت آهنگ در دیتابیس جنگو
         music = Music.objects.create(title=display_title, artist=artist, genre=genre, album=album, file=mp3_file,
                                      track_number=track_number, year=year, lyrics=lyrics,
-                                     search_aliases=search_aliases_combined)
+                                     search_aliases="")
         # ۸. متصل کردن ManyToMany آرتیست‌ها
         for name in artist_names:
             art_obj, _ = Artist.objects.get_or_create(name=name.strip())
