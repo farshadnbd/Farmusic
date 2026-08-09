@@ -850,7 +850,7 @@ body {
     height: 100%;
     background-size: cover;
     background-position: center;
-    filter: blur(25px) brightness(0.25);
+    filter: blur(15px) brightness(0.40);
     z-index: 1;
     transform: scale(1.1);
 }

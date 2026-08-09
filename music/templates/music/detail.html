@@ -2,58 +2,68 @@
 {% load static %}
 {% load thumbnail %}
 
-{% block title %}{{ music.title }} -
-    {% for art in music.artists.all %}{{ art.name }}{% if not forloop.last %} & {% endif %}{% endfor %} |
-    FarMusic{% endblock %}
+{% block title %}
+    {{ seo_subtitle }} | FarMusic
+{% endblock %}
 
 {% block canonical %}
     <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
 {% endblock %}
 
 {% block extra_head %}
-    <meta name="description" content="دانلود آهنگ {{ music.title }} از
 
+    <meta name="description"
+          content="{{ seo_subtitle }} با پخش آنلاین، متن آهنگ، اطلاعات آلبوم و دانلود مستقیم از FarMusic">
 
+    <meta property="og:title"
+          content="{{ seo_subtitle }}">
 
+    <meta property="og:description"
+          content="{{ seo_subtitle }} با پخش آنلاین و لینک مستقیم در FarMusic">
 
+    <meta property="og:type"
+          content="music.song">
 
-            {% for art in music.artists.all %}{{ art.name }}{% if not forloop.last %} و {% endif %}{% endfor %} با پخش آنلاین، متن آهنگ، اطلاعات آلبوم و دانلود مستقیم از FarMusic">
-    <meta property="og:title" content="{{ music.title }} -
-            {% for art in music.artists.all %}{{ art.name }}{% if not forloop.last %} & {% endif %}{% endfor %}">
-    <meta property="og:description" content="دانلود و پخش آنلاین آهنگ {{ music.title }} اثر
-            {% for art in music.artists.all %}{{ art.name }}{% if not forloop.last %} و {% endif %}{% endfor %}">
-    <meta property="og:type" content="music.song">
-
-    {% if music.cover %}
-        <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ music.cover.url }}">
+    {% if music.cover_url %}
+        <meta property="og:image"
+              content="{{ music.cover_url }}">
+    {% elif music.cover %}
+        <meta property="og:image"
+              content="{{ request.scheme }}://{{ request.get_host }}{{ music.cover.url }}">
     {% endif %}
-    <meta property="og:url" content="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+
+    <meta property="og:url"
+          content="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
 
     <script type="application/ld+json">
         {
           "@context": "https://schema.org",
           "@type": "MusicRecording",
-          "name": "{{ music.title|escapejs }}",
-          "byArtist": [
+
+          "name": "{{ display_title|escapejs }}",
+
+  "byArtist": [
         {% for art in music.artists.all %}
             {
               "@type": "MusicGroup",
               "name": "{{ art.name|escapejs }}",
-              "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'artist_detail' art.id art.slug_en %}"
-            }{% if not forloop.last %},{% endif %}
-            {% endfor %}
-        ],
-        {% if music.album %}
-            "inAlbum": {
-              "@type": "MusicAlbum",
-              "name": "{{ music.album.title|escapejs }}"
-            },
-        {% endif %}
-        "url": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}"
-        }
-    </script>
-{% endblock %}
+      "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'artist_detail' art.id art.slug_en|default:'artist' %}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+        ]{% if music.album %},
 
+  "inAlbum": {
+    "@type": "MusicAlbum",
+    "name": "{{ music.album.title|escapejs }}",
+    "url": "{{ request.scheme }}://
+        {{ request.get_host }}{% url 'album_detail' music.album.id music.album.slug_en|default:'album' %}"
+  }{% endif %},
+
+  "url": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}"
+}
+    </script>
+
+{% endblock %}
 {% block content %}
     <div class="row g-4 align-items-center">
         <div class="col-lg-4 text-center">
@@ -286,7 +296,7 @@
     <hr class="my-5" style="border-color: #333;">
 
     <!-- بخش آهنگ‌های مرتبط (اصلاح شده و شبیه کارت‌های Home) -->
-    <h3 class="mb-4">🎵 آهنگ‌های مرتبط</h3>
+    <h1 class="mb-4">🎵 آهنگ‌های مرتبط</h1>
     <div class="row mobile-slider mb-5">
         {% for item in related_musics %}
             <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-4">
@@ -316,17 +326,9 @@
                                 data-artist="
 
 
-
-
-
-
                                         {% if item.artists.exists %}{% for art in item.artists.all %}{{ art.name }}{% if not forloop.last %} & {% endif %}{% endfor %}{% else %}{{ item.artist.name }}{% endif %}"
                                 data-is-vip="{{ item.is_vip|yesno:'true,false' }}"
                                 data-cover-url="
-
-
-
-
 
 
                                         {% if item.cover_url %}{{ item.cover_url }}{% elif item.cover %}{% thumbnail item.cover 'music_card' %}{% else %}{% static 'images/default-cover.jpg' %}{% endif %}">
@@ -428,14 +430,6 @@
                                     <img src="
 
 
-
-
-
-
-
-
-
-
                                             {% if comment.user.profile.avatar %}{{ comment.user.profile.avatar.url }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}"
                                          class="nav-avatar" alt="آواتار {{ comment.user.username }}" loading="lazy"
                                          style="width: 45px; height: 45px; border-radius: 50%;">
@@ -459,14 +453,6 @@
                                         <div class="card-body p-3">
                                             <div class="d-flex align-items-center gap-2 mb-2">
                                                 <img src="
-
-
-
-
-
-
-
-
 
 
                                                         {% if reply.user.profile.avatar %}{{ reply.user.profile.avatar.url }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}"
