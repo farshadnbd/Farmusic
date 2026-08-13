@@ -10,7 +10,6 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('payments/', include('payments.urls')),
     path('admin-dashboard/', include('dashboard.urls')),
-    path('51475603.txt', lambda r: HttpResponse("51475603", content_type="text/plain")),
 ]
 
 if settings.DEBUG:

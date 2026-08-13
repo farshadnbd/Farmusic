@@ -27,6 +27,8 @@ def home(request):
     page_obj = paginator.get_page(page_number)
     latest_albums = Album.objects.order_by('-created_at')[:8]
     user_has_vip = False
+    # بررسی اینکه کاربر در صفحه دوم به بعد پجینیشن است یا خیر
+    is_paginated_page = bool(page_number)
 
     if request.user.is_authenticated:
         try:
@@ -41,8 +43,7 @@ def home(request):
         'music/home.html',
         {'musics': musics, 'music_count': music_count, 'artist_count': artist_count, 'genre_count': genre_count,
          'total_downloads': total_downloads, 'page_obj': page_obj, 'latest_albums': latest_albums,
-         "user_has_vip": user_has_vip, })
-
+         "user_has_vip": user_has_vip, 'is_paginated_page': is_paginated_page, })
 
 def music_detail(request, pk, slug_en=None):
     music = get_object_or_404(Music.objects.select_related('artist', 'genre', 'album'), pk=pk)
@@ -684,6 +685,12 @@ def robots_txt(request):
     lines = [
         "User-agent: *",
         "Allow: /",
+        "Disallow: */follow",
+        "Disallow: */follow/",
+        "Disallow: */like",
+        "Disallow: */like/",
+        "Disallow: /search/",
+        "Disallow: /search-suggestions/",
         "",
         f"Sitemap: {sitemap_url}",
     ]

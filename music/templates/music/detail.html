@@ -25,44 +25,36 @@
           content="music.song">
 
     {% if music.cover_url %}
-        <meta property="og:image"
-              content="{{ music.cover_url }}">
+        <meta property="og:image" content="{{ music.cover_url }}">
     {% elif music.cover %}
-        <meta property="og:image"
-              content="{{ request.scheme }}://{{ request.get_host }}{{ music.cover.url }}">
+        <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ music.cover.url }}">
     {% endif %}
 
-    <meta property="og:url"
-          content="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+    <meta property="og:url" content="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
 
     <script type="application/ld+json">
-        {
-          "@context": "https://schema.org",
-          "@type": "MusicRecording",
-
-          "name": "{{ display_title|escapejs }}",
-
-  "byArtist": [
-        {% for art in music.artists.all %}
-            {
-              "@type": "MusicGroup",
-              "name": "{{ art.name|escapejs }}",
-      "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'artist_detail' art.id art.slug_en|default:'artist' %}"
-    }{% if not forloop.last %},{% endif %}
-    {% endfor %}
-        ]{% if music.album %},
-
-  "inAlbum": {
-    "@type": "MusicAlbum",
-    "name": "{{ music.album.title|escapejs }}",
-    "url": "{{ request.scheme }}://
-        {{ request.get_host }}{% url 'album_detail' music.album.id music.album.slug_en|default:'album' %}"
-  }{% endif %},
-
-  "url": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}"
-}
+    {
+      "@context": "https://schema.org",
+      "@type": "MusicRecording",
+      "name": "{{ display_title|escapejs }}",
+      "image": "{% if music.cover_url %}{{ music.cover_url }}{% elif music.cover %}{{ request.scheme }}://{{ request.get_host }}{{ music.cover.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}/static/images/default-cover.jpg{% endif %}",
+      "byArtist": [
+            {% for art in music.artists.all %}
+                {
+                  "@type": "MusicGroup",
+                  "name": "{{ art.name|escapejs }}",
+                  "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'artist_detail' art.id art.slug_en|default:'artist' %}"
+                }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+      ]{% if music.album %},
+      "inAlbum": {
+        "@type": "MusicAlbum",
+        "name": "{{ music.album.title|escapejs }}",
+        "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'album_detail' music.album.id music.album.slug_en|default:'album' %}"
+      }{% endif %},
+      "url": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}"
+    }
     </script>
-
 {% endblock %}
 {% block content %}
     <div class="row g-4 align-items-center">
@@ -130,7 +122,6 @@
                             💿 آلبوم: {{ music.album.title }}
                         </a>
                     {% endif %}
-                    <span class="text-muted">|</span>
                     <span class="text-muted">|</span>
 
                     {% if music.genre %}
@@ -296,7 +287,7 @@
     <hr class="my-5" style="border-color: #333;">
 
     <!-- بخش آهنگ‌های مرتبط (اصلاح شده و شبیه کارت‌های Home) -->
-    <h1 class="mb-4">🎵 آهنگ‌های مرتبط</h1>
+    <h2 class="mb-4">🎵 آهنگ‌های مرتبط</h2>
     <div class="row mobile-slider mb-5">
         {% for item in related_musics %}
             <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-4">

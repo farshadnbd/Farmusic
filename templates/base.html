@@ -6,15 +6,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <meta name="robots" content="index,follow">
-
     <title>{% block title %}FarMusic{% endblock %}</title>
 
     <meta name="description"
           content="{% block meta_description %}دانلود آهنگ، آلبوم و پخش آنلاین موسیقی در FarMusic{% endblock %}">
 
     {% block canonical %}
-        <link rel="canonical" href="{{ request.build_absolute_uri }}">
+        <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+    {% endblock %}
+
+    {% block meta_robots %}
+        {% if is_paginated_page %}
+            <meta name="robots" content="noindex, follow">
+        {% else %}
+            <meta name="robots" content="index, follow">
+        {% endif %}
     {% endblock %}
 
     <!-- Open Graph -->
