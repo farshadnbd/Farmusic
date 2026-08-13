@@ -11,9 +11,8 @@
 {% endblock %}
 
 {% block extra_head %}
-
     <meta name="description"
-          content="{{ seo_subtitle }} با پخش آنلاین، متن آهنگ، اطلاعات آلبوم و دانلود مستقیم از FarMusic">
+          content="{{ seo_subtitle }} با کیفیت عالی ۳۲۰ به همراه متن ترانه و لینک مستقیم در FarMusic">
 
     <meta property="og:title"
           content="{{ seo_subtitle }}">
@@ -21,8 +20,7 @@
     <meta property="og:description"
           content="{{ seo_subtitle }} با پخش آنلاین و لینک مستقیم در FarMusic">
 
-    <meta property="og:type"
-          content="music.song">
+    <meta property="og:type" content="music.song">
 
     {% if music.cover_url %}
         <meta property="og:image" content="{{ music.cover_url }}">
