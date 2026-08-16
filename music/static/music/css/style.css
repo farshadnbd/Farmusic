@@ -155,7 +155,7 @@ body {
     font-size: 0.7rem !important;
     padding: 5px 8px !important;
     border-radius: 5px !important;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 /* ─── ادامه استایل‌های اصلی قالب ─── */
@@ -464,16 +464,19 @@ body {
         padding: 15px;
         border-radius: 10px;
         margin-top: 10px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
     }
+
     .navbar-nav .nav-link {
         padding: 8px 0;
         border-bottom: 1px solid #2b2b2b;
     }
+
     .navbar-nav .dropdown-menu {
         background: #222 !important;
         border: none;
     }
+
     .navbar-nav .dropdown-item {
         color: #fff !important;
     }
@@ -485,9 +488,11 @@ body {
         display: flex !important;
         justify-content: space-between !important;
     }
+
     .navbar-nav {
         flex-direction: row !important;
     }
+
     .navbar-nav .nav-link {
         padding-right: 12px !important;
         padding-left: 12px !important;
@@ -520,6 +525,7 @@ body {
     .music-title {
         font-size: 0.85rem !important;
     }
+
     .card-body p {
         font-size: 0.75rem !important;
     }
@@ -529,14 +535,17 @@ body {
 .mobile-slider::-webkit-scrollbar {
     height: 5px;
 }
+
 .mobile-slider::-webkit-scrollbar-track {
     background: rgba(255, 255, 255, 0.02);
     border-radius: 10px;
 }
+
 .mobile-slider::-webkit-scrollbar-thumb {
     background: rgba(255, 193, 7, 0.15);
     border-radius: 10px;
 }
+
 .mobile-slider:hover::-webkit-scrollbar-thumb {
     background: rgba(255, 193, 7, 0.4);
 }
@@ -634,7 +643,7 @@ body {
     z-index: 15;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
 .slider-arrow-btn:hover {
@@ -661,9 +670,11 @@ body {
     .slider-arrow-btn {
         display: none !important;
     }
+
     .right-arrow, .left-arrow {
         display: none !important;
     }
+
     .genre-slider-item {
         width: 140px;
     }
@@ -901,12 +912,13 @@ body {
     flex-grow: 1;
     padding-bottom: 20px;
     scrollbar-width: thin;
-    scrollbar-color: #ffc107 rgba(0,0,0,0.2);
+    scrollbar-color: #ffc107 rgba(0, 0, 0, 0.2);
 }
 
 .lyrics-box-bold::-webkit-scrollbar {
     width: 6px;
 }
+
 .lyrics-box-bold::-webkit-scrollbar-thumb {
     background-color: #ffc107;
     border-radius: 10px;
@@ -1001,6 +1013,7 @@ body {
     background: rgba(255, 193, 7, 0.1) !important;
     border: 1px solid rgba(255, 193, 7, 0.2) !important;
 }
+
 .alert-no-vip {
     background: #191919 !important;
     border: 1px solid #2d2d2d !important;
@@ -1012,6 +1025,7 @@ body {
     transition: all 0.25s ease-in-out !important;
     text-align: right;
 }
+
 .user-panel-btn:hover {
     background: #222222 !important;
     border-color: #ffc107 !important;
@@ -1026,6 +1040,7 @@ body {
 .premium-form p {
     margin-bottom: 20px !important;
 }
+
 .premium-form label {
     display: block;
     font-size: 0.9rem;
@@ -1033,6 +1048,7 @@ body {
     color: #ffc107;
     font-weight: 500;
 }
+
 .premium-form input[type="text"],
 .premium-form input[type="password"],
 .premium-form input[type="email"],
@@ -1048,18 +1064,21 @@ body {
     font-size: 0.95rem;
     transition: all 0.3s ease;
 }
+
 .premium-form input:focus,
 .premium-form textarea:focus {
     outline: none !important;
     border-color: #ffc107 !important;
     box-shadow: 0 0 10px rgba(255, 193, 7, 0.15) !important;
 }
+
 .premium-form .helptext {
     display: block;
     font-size: 0.78rem;
     color: #777777;
     margin-top: 5px;
 }
+
 .extra-small {
     font-size: 0.75rem;
 }
@@ -1073,6 +1092,7 @@ body {
     box-shadow: 0 4px 15px rgba(25, 135, 84, 0.2);
     height: 46px !important;
 }
+
 .btn-premium-download:hover {
     background: linear-gradient(135deg, #157347, #105133) !important;
     transform: translateY(-2px);
@@ -1090,6 +1110,7 @@ body {
     direction: rtl !important;
     text-align: right !important;
 }
+
 .custom-playlist-select:focus {
     border-color: #ffc107 !important;
     box-shadow: none !important;
@@ -1101,10 +1122,18 @@ body {
 }
 
 @keyframes pulseEffect {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.03); box-shadow: 0 0 15px rgba(220, 53, 69, 0.4); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.03);
+        box-shadow: 0 0 15px rgba(220, 53, 69, 0.4);
+    }
+    100% {
+        transform: scale(1);
+    }
 }
+
 .animate-pulse {
     animation: pulseEffect 2s infinite ease-in-out;
 }
@@ -1128,6 +1157,7 @@ body {
 .footer-links a {
     transition: all 0.25s ease-in-out;
 }
+
 .footer-links a:hover {
     color: #ffc107 !important;
     padding-right: 4px;
@@ -1162,10 +1192,8 @@ body {
 
 /* دکمه دانلود هماهنگ با تم FarMusic */
 .btn-download-main {
-    background-color: #1a1a1a !important;
-    color: #ffc107 !important;
-    border: 2px solid #ffc107 !important;
-    transition: all 0.3s ease-in-out;
+    background: #1b7396;
+    background: linear-gradient(90deg, rgba(27, 115, 150, 1) 0%, rgba(87, 199, 133, 1) 50%, rgba(237, 221, 83, 1) 100%);
 }
 
 .btn-download-main:hover {
@@ -1231,6 +1259,7 @@ body {
     align-items: center;
     justify-content: space-between;
 }
+
 .global-audio-player audio {
     width: 100%;
     max-width: 500px;
@@ -1286,13 +1315,13 @@ body {
     width: 35px !important; /* کمی بزرگ‌تر برای لمس راحت‌تر در موبایل */
     height: 35px !important;
     background: rgba(255, 193, 7, 0.3) !important; /* زرد نیمه شفاف با وضوح بیشتر */
-    border: 2px solid #ffc107 !important;           /* مرز زرد درخشان */
-    border-radius: 50% !important;                  /* کاملاً دایره‌ای */
-    color: #ffc107 !important;                      /* آیکون زرد */
+    border: 2px solid #ffc107 !important; /* مرز زرد درخشان */
+    border-radius: 50% !important; /* کاملاً دایره‌ای */
+    color: #ffc107 !important; /* آیکون زرد */
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    opacity: 0;                                     /* در دسکتاپ اول مخفی است */
+    opacity: 0; /* در دسکتاپ اول مخفی است */
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     backdrop-filter: blur(4px) !important;
     z-index: 10;
@@ -1307,8 +1336,8 @@ body {
 }
 
 .play-btn-card:hover {
-    background: #ffc107 !important;                 /* در حالت هاور کاملا زرد می‌شود */
-    color: #121212 !important;                      /* آیکون مشکی برای تضاد رنگی */
+    background: #ffc107 !important; /* در حالت هاور کاملا زرد می‌شود */
+    color: #121212 !important; /* آیکون مشکی برای تضاد رنگی */
     transform: translate(-50%, -50%) scale(1.1) !important;
     box-shadow: 0 6px 20px rgba(255, 193, 7, 0.5) !important;
 }
