@@ -5,38 +5,18 @@
     دانلود آهنگ‌های {{ artist.name }} | FarMusic
 {% endblock %}
 
-{% block extra_head %}
-    <meta name="description"
-          content="دانلود تمامی آهنگ‌ها و آلبوم‌های {{ artist.name }} همراه با متن آهنگ و پخش آنلاین در FarMusic">
-    <meta property="og:title"
-          content="{{ artist.name }} | FarMusic">
-    <meta property="og:description"
-          content="تمامی آهنگ‌ها و آلبوم‌های {{ artist.name }}">
-    <meta property="og:type"
-          content="profile">
-    <meta property="og:url"
-          content="{{ request.build_absolute_uri }}">
-
+{% block meta_description %} دانلود تمامی آهنگ‌ها و آلبوم‌های {{ artist.name }} همراه با متن آهنگ و پخش آنلاین در
+    FarMusic. {% endblock %} {% block canonical %}
+    <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}"> {% endblock %}
+{% block og_title %} {{ artist.name }} | FarMusic {% endblock %} {% block og_description %} تمامی آهنگ‌ها و آلبوم‌های
+    {{ artist.name }} در FarMusic {% endblock %} {% block og_type %} profile {% endblock %} {% block og_image %}
     {% if artist.image %}
         <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ artist.image.url }}">
-    {% endif %}
-    <script type="application/ld+json">
-        {
-          "@context": "https://schema.org",
-          "@type": "MusicGroup",
-          "name": "{{ artist.name|escapejs }}",
-
-        {% if artist.image %}
-            "image": "{{ request.scheme }}://{{ request.get_host }}{{ artist.image.url }}",
-        {% endif %}
-
-  {% if artist.bio %}
-        "description": "{{ artist.bio|striptags|escapejs }}",
-    {% endif %}
-
-        "url": "{{ request.build_absolute_uri }}"
-}
-    </script>
+    {% endif %} {% endblock %} {% block extra_head %}
+    <script type="application/ld+json"> { "@context": "https://schema.org", "@type": "MusicGroup", "name": "{{ artist.name|escapejs }}"
+        {% if artist.image %}, "image": "{{ request.scheme }}://{{ request.get_host }}{{ artist.image.url }}
+            " {% endif %} {% if artist.bio %}, "description": "{{ artist.bio|striptags|escapejs }}" {% endif %}
+        , "url": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}" } </script>
 {% endblock %}
 
 {% block content %}

@@ -5,38 +5,18 @@
     FarMusic
 {% endblock %}
 
-{% block canonical %}
-    <link rel="canonical" href="{{ request.build_absolute_uri }}">
-{% endblock %}
-
-{% block extra_head %}
-    <meta name="description"
-          content="FarMusic مرجع دانلود آهنگ، آلبوم و مشاهده خوانندگان با پخش آنلاین، متن آهنگ و آرشیو کامل موسیقی.">
-
-    <meta property="og:title" content="FarMusic | دانلود آهنگ و آلبوم">
-    <meta property="og:description"
-          content="جدیدترین آهنگ‌ها، آلبوم‌ها، خوانندگان و ژانرهای موسیقی را در FarMusic دنبال کنید.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="{{ request.build_absolute_uri }}">
-
-    <script type="application/ld+json">
-        {
-          "@context": "https://schema.org",
-          "@type": "WebSite",
-          "name": "FarMusic",
-          "url": "{{ request.scheme }}://{{ request.get_host }}/",
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": "{{ request.scheme }}://{{ request.get_host }}{% url 'search_music' %}?q={search_term_string}",
-        "query-input": "required name=search_term_string"
-      }
-    }
-    </script>
+{% block meta_description %} FarMusic مرجع دانلود آهنگ ایرانی و خارجی، آلبوم و مشاهده خوانندگان با پخش آنلاین، متن آهنگ
+    و آرشیو کامل
+    موسیقی. {% endblock %} {% block canonical %}
+    <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}/"> {% endblock %} {% block og_title %}
+    FarMusic | دانلود آهنگ و آلبوم {% endblock %} {% block og_description %} جدیدترین آهنگ‌ها، آلبوم‌ها، خوانندگان و
+    ژانرهای موسیقی را در FarMusic دنبال کنید. {% endblock %} {% block extra_head %}
+    <script type="application/ld+json"> { "@context": "https://schema.org", "@type": "WebSite", "name": "FarMusic", "url": "{{ request.scheme }}://{{ request.get_host }}/", "potentialAction": { "@type": "SearchAction", "target": "{{ request.scheme }}://{{ request.get_host }}{% url 'search_music' %}?q={search_term_string}", "query-input": "required name=search_term_string" } } </script>
 {% endblock %}
 
 {% block content %}
     <div class="hero-section text-center">
-        <h3>FarMusic | دنیای بی نهایت موسیقی</h3>
+        <h1>FarMusic | دنیای بی نهایت موسیقی</h1>
         <a href="{% url 'popular_musics' %}" class="btn btn-warning">
             محبوب‌ترین آهنگ‌ها
         </a>
@@ -47,7 +27,7 @@
     </p>
 
     <div class="position-relative mb-5">
-        <h3 class="mb-4 text-end fs-4 fw-bold" style="letter-spacing: -0.5px;">🏷️ ژانرهای موسیقی</h3>
+        <h2 class="mb-4 text-end fs-4 fw-bold" style="letter-spacing: -0.5px;">🏷️ ژانرهای موسیقی</h2>
 
         <button class="slider-arrow-btn right-arrow" onclick="scrollGenreSlider('right')">➔</button>
 
@@ -89,7 +69,7 @@
         }
     </script>
 
-    <h2 class="mb-4">جدیدترین آهنگ‌ها</h2>
+    <h3 class="mb-4">جدیدترین آهنگ‌ها</h3>
 
     <div class="row mobile-slider mb-5">
         {% for music in page_obj %}
@@ -97,21 +77,21 @@
                 <div class="card h-100 shadow-sm music-card music-card-custom">
 
                     <div class="position-relative music-cover-wrapper">
-                    <a href="{% url 'music_detail' music.id music.slug_en %}">
-                        {% if music.cover_url %}
-                            <img src="{{ music.cover_url }}"
-                                 class="img-fluid music-cover-detail rounded-4 shadow-lg w-100"
-                                 alt="{{ music.title }} - {{ music.artist.name }}" loading="lazy">
-                        {% elif music.cover %}
-                            <img src="{% thumbnail music.cover 'music_card' %}"
-                                 class="img-fluid music-cover-detail rounded-4 shadow-lg w-100"
-                                 alt="{{ music.title }} - {{ music.artist.name }}" loading="lazy">
-                        {% else %}
-                            <img src="{% static 'images/default-cover.jpg' %}"
-                                 class="img-fluid music-cover-detail rounded-4 shadow-lg w-100"
-                                 alt="{{ music.title }} - {{ music.artist.name }}" loading="lazy">
-                        {% endif %}
-                    </a>
+                        <a href="{% url 'music_detail' music.id music.slug_en %}">
+                            {% if music.cover_url %}
+                                <img src="{{ music.cover_url }}"
+                                     class="img-fluid music-cover-detail rounded-4 shadow-lg w-100"
+                                     alt="{{ music.title }} - {{ music.artist.name }}" loading="lazy">
+                            {% elif music.cover %}
+                                <img src="{% thumbnail music.cover 'music_card' %}"
+                                     class="img-fluid music-cover-detail rounded-4 shadow-lg w-100"
+                                     alt="{{ music.title }} - {{ music.artist.name }}" loading="lazy">
+                            {% else %}
+                                <img src="{% static 'images/default-cover.jpg' %}"
+                                     class="img-fluid music-cover-detail rounded-4 shadow-lg w-100"
+                                     alt="{{ music.title }} - {{ music.artist.name }}" loading="lazy">
+                            {% endif %}
+                        </a>
 
                         <button class="play-btn-card"
                                 data-audio-url="{% url 'download_music' music.id %}"
@@ -121,7 +101,7 @@
                                 data-cover-url="{% if music.cover_url %}{{ music.cover_url }}
                                                 {% elif music.cover %}{% thumbnail music.cover 'music_card' %}
                                                 {% else %}{% static 'images/default-cover.jpg' %}{% endif %}">
-                        ▶
+                            ▶
                         </button>
                     </div>
 
@@ -176,7 +156,7 @@
         {% endfor %}
     </div>
 
-    <h2 class="mt-5 mb-4">جدیدترین آلبوم‌ها</h2>
+    <h4 class="mt-5 mb-4">جدیدترین آلبوم‌ها</h4>
 
     <div class="row mobile-slider mb-5">
         {% for album in latest_albums %}

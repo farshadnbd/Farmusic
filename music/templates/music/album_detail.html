@@ -1,43 +1,52 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load thumbnail %}
-{% block title %}
+{% block meta_description %}
+    دانلود آلبوم {{ album.title }} از {{ album.artist.name }} همراه با تمامی ترک‌ها و دانلود مستقیم در FarMusic.
+{% endblock %}
+
+{% block canonical %}
+    <link rel="canonical"
+          href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+{% endblock %}
+
+{% block og_title %}
     {{ album.title }} - {{ album.artist.name }} | FarMusic
 {% endblock %}
 
-{% block extra_head %}
-    <meta name="description"
-          content="دانلود آلبوم {{ album.title }} از {{ album.artist.name }} همراه با تمامی ترک‌ها و دانلود مستقیم در FarMusic">
-    <meta property="og:title"
-          content="{{ album.title }} - {{ album.artist.name }}">
-    <meta property="og:description"
-          content="دانلود آلبوم {{ album.title }} از {{ album.artist.name }}">
-    <meta property="og:type"
-          content="music.album">
-    <meta property="og:url"
-          content="{{ request.build_absolute_uri }}">
+{% block og_description %}
+    دانلود آلبوم {{ album.title }} از {{ album.artist.name }} همراه با تمامی ترک‌ها و دانلود مستقیم در FarMusic.
+{% endblock %}
 
+{% block og_type %}
+    music.album
+{% endblock %}
+
+{% block og_image %}
     {% if album.cover %}
         <meta property="og:image"
               content="{{ request.scheme }}://{{ request.get_host }}{{ album.cover.url }}">
     {% endif %}
+{% endblock %}
+
+{% block extra_head %}
+
     <script type="application/ld+json">
         {
-          "@context": "https://schema.org",
-          "@type": "MusicAlbum",
+            "@context": "https://schema.org",
+            "@type": "MusicAlbum",
+            "name": "{{ album.title|escapejs }}",
 
-          "name": "{{ album.title|escapejs }}",
+    "byArtist": {
+        "@type": "MusicGroup",
+        "name": "{{ album.artist.name|escapejs }}"
+    }
 
-  "byArtist": {
-    "@type": "MusicGroup",
-    "name": "{{ album.artist.name|escapejs }}"
-  },
+        {% if album.cover %},
+    "image": "{{ request.scheme }}://{{ request.get_host }}{{ album.cover.url }}"
+        {% endif %},
 
-        {% if album.cover %}
-            "image": "{{ request.scheme }}://{{ request.get_host }}{{ album.cover.url }}",
-        {% endif %}
-
-        "url": "{{ request.build_absolute_uri }}"
+    "url": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}"
 }
     </script>
 {% endblock %}

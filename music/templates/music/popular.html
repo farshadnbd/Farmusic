@@ -1,33 +1,12 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load thumbnail %}
-{% block title %}
-    محبوب‌ترین آهنگ‌ها
-{% endblock %}
-
-{% block canonical %}
-    <link rel="canonical" href="{{ request.build_absolute_uri }}">
-{% endblock %}
-
-{% block extra_head %}
-    <meta name="description"
-          content="محبوب‌ترین آهنگ‌های FarMusic را همراه با پخش آنلاین، دانلود مستقیم و اطلاعات کامل مشاهده کنید.">
-
-    <meta property="og:title" content="محبوب‌ترین آهنگ‌ها | FarMusic">
-    <meta property="og:description"
-          content="فهرست محبوب‌ترین آهنگ‌ها در FarMusic همراه با دانلود و پخش آنلاین.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="{{ request.build_absolute_uri }}">
-
-    <script type="application/ld+json">
-        {
-          "@context": "https://schema.org",
-          "@type": "CollectionPage",
-          "name": "محبوب‌ترین آهنگ‌ها",
-          "description": "فهرست محبوب‌ترین آهنگ‌های FarMusic",
-          "url": "{{ request.build_absolute_uri }}"
-    }
-    </script>
+{% block title %} محبوب‌ترین آهنگ‌ها | FarMusic {% endblock %} {% block meta_description %} محبوب‌ترین آهنگ‌های FarMusic
+    را همراه با پخش آنلاین، دانلود مستقیم و اطلاعات کامل مشاهده کنید. {% endblock %} {% block canonical %}
+    <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}"> {% endblock %}
+{% block og_title %} محبوب‌ترین آهنگ‌ها | FarMusic {% endblock %} {% block og_description %} فهرست محبوب‌ترین آهنگ‌ها در
+    FarMusic همراه با دانلود و پخش آنلاین. {% endblock %} {% block extra_head %}
+    <script type="application/ld+json"> { "@context": "https://schema.org", "@type": "CollectionPage", "name": "محبوب‌ترین آهنگ‌ها", "description": "فهرست محبوب‌ترین آهنگ‌های FarMusic", "url": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}" } </script>
 {% endblock %}
 
 {% block content %}
