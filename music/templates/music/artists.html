@@ -6,11 +6,19 @@
 {% endblock %}
 
 {% block meta_description %} لیست کامل خوانندگان و هنرمندان در FarMusic همراه با صفحه اختصاصی، آهنگ‌ها و آلبوم‌های هر
-    هنرمند. {% endblock %} {% block canonical %}
-    <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}"> {% endblock %}
-{% block og_title %} خوانندگان | FarMusic {% endblock %} {% block og_description %} مشاهده لیست کامل خوانندگان و
-    هنرمندان در FarMusic {% endblock %} {% block extra_head %}
-    <script type="application/ld+json"> { "@context": "https://schema.org", "@type": "CollectionPage", "name": "خوانندگان FarMusic", "description": "لیست کامل خوانندگان و هنرمندان در FarMusic", "url": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}" } </script>
+    هنرمند.
+{% endblock %}
+{% block canonical %}
+    <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+{% endblock %}
+{% block og_title %} خوانندگان | FarMusic
+{% endblock %}
+{% block og_description %} مشاهده لیست کامل خوانندگان و
+    هنرمندان در FarMusic
+{% endblock %}
+{% block extra_head %}
+    <script type="application/ld+json"> { "@context": "https://schema.org", "@type": "CollectionPage", "name": "خوانندگان FarMusic", "description": "لیست کامل خوانندگان و هنرمندان در FarMusic", "url": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}" }
+    </script>
 {% endblock %}
 
 {% block content %}

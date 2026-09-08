@@ -57,10 +57,13 @@ def send_new_music_to_telegram(music):
                 "disable_web_page_preview": False, }
 
     try:
-        requests.post(url, data=data, files=files, timeout=20, )
+        response = requests.post(url, data=data, files=files, timeout=20, )
+
+        print("📤 Telegram Send Status:", response.status_code)
+        print("📤 Telegram Send Response:", response.text)
 
     except Exception as e:
-        print("Telegram Send Error:", e)
+        print("❌ Telegram Send Error:", repr(e))
 
     finally:
         if photo_file:

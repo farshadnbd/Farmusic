@@ -7,11 +7,21 @@
 
 {% block meta_description %} FarMusic مرجع دانلود آهنگ ایرانی و خارجی، آلبوم و مشاهده خوانندگان با پخش آنلاین، متن آهنگ
     و آرشیو کامل
-    موسیقی. {% endblock %} {% block canonical %}
-    <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}/"> {% endblock %} {% block og_title %}
-    FarMusic | دانلود آهنگ و آلبوم {% endblock %} {% block og_description %} جدیدترین آهنگ‌ها، آلبوم‌ها، خوانندگان و
-    ژانرهای موسیقی را در FarMusic دنبال کنید. {% endblock %} {% block extra_head %}
-    <script type="application/ld+json"> { "@context": "https://schema.org", "@type": "WebSite", "name": "FarMusic", "url": "{{ request.scheme }}://{{ request.get_host }}/", "potentialAction": { "@type": "SearchAction", "target": "{{ request.scheme }}://{{ request.get_host }}{% url 'search_music' %}?q={search_term_string}", "query-input": "required name=search_term_string" } } </script>
+    موسیقی.
+{% endblock %}
+{% block canonical %}
+    <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}/">
+{% endblock %}
+{% block og_title %}
+    FarMusic | دانلود آهنگ و آلبوم
+{% endblock %}
+{% block og_description %} جدیدترین آهنگ‌ها، آلبوم‌ها، خوانندگان و
+    ژانرهای موسیقی را در FarMusic دنبال کنید.
+{% endblock %}
+{% block extra_head %}
+    <script type="application/ld+json">
+        { "@context": "https://schema.org", "@type": "WebSite", "name": "FarMusic", "url": "{{ request.scheme }}://{{ request.get_host }}/", "potentialAction": { "@type": "SearchAction", "target": "{{ request.scheme }}://{{ request.get_host }}{% url 'search_music' %}?q={search_term_string}", "query-input": "required name=search_term_string" } }
+    </script>
 {% endblock %}
 
 {% block content %}

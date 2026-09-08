@@ -1,18 +1,25 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load thumbnail %}
-{% block title %} محبوب‌ترین آهنگ‌ها | FarMusic {% endblock %} {% block meta_description %} محبوب‌ترین آهنگ‌های FarMusic
-    را همراه با پخش آنلاین، دانلود مستقیم و اطلاعات کامل مشاهده کنید. {% endblock %} {% block canonical %}
-    <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}"> {% endblock %}
-{% block og_title %} محبوب‌ترین آهنگ‌ها | FarMusic {% endblock %} {% block og_description %} فهرست محبوب‌ترین آهنگ‌ها در
-    FarMusic همراه با دانلود و پخش آنلاین. {% endblock %} {% block extra_head %}
+{% block title %} محبوب‌ترین آهنگ‌ها | FarMusic
+{% endblock %}
+{% block meta_description %} محبوب‌ترین آهنگ‌های FarMusic
+    را همراه با پخش آنلاین، دانلود مستقیم و اطلاعات کامل مشاهده کنید.
+{% endblock %}
+{% block canonical %}
+    <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+{% endblock %}
+{% block og_title %} محبوب‌ترین آهنگ‌ها | FarMusic{% endblock %}
+{% block og_description %} فهرست محبوب‌ترین آهنگ‌ها در
+    FarMusic همراه با دانلود و پخش آنلاین.
+{% endblock %}
+{% block extra_head %}
     <script type="application/ld+json"> { "@context": "https://schema.org", "@type": "CollectionPage", "name": "محبوب‌ترین آهنگ‌ها", "description": "فهرست محبوب‌ترین آهنگ‌های FarMusic", "url": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}" } </script>
 {% endblock %}
 
 {% block content %}
     <h2 class="mb-4">🔥 محبوب‌ترین آهنگ‌ها</h2>
 
-    <!-- 🟢 اضافه شدن دکمه‌های فیلتر بر اساس دانلود، ویو و لایک -->
     <div class="d-flex gap-2 mb-4">
         <a href="?sort=download"
            class="btn {% if current_sort == 'download' or not current_sort %}btn-warning{% else %}btn-outline-light{% endif %}">

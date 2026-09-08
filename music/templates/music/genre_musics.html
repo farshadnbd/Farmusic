@@ -6,11 +6,19 @@
 {% endblock %}
 
 {% block meta_description %} دانلود بهترین آهنگ‌های ژانر {{ genre.name }} با پخش آنلاین، متن آهنگ و لینک مستقیم در
-    FarMusic. {% endblock %} {% block canonical %}
-    <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}"> {% endblock %}
-{% block og_title %} دانلود آهنگ‌های {{ genre.name }} | FarMusic {% endblock %} {% block og_description %} مجموعه
-    آهنگ‌های ژانر {{ genre.name }} همراه با پخش آنلاین و دانلود مستقیم در FarMusic {% endblock %} {% block extra_head %}
-    <script type="application/ld+json"> { "@context": "https://schema.org", "@type": "CollectionPage", "name": "آهنگ‌های ژانر {{ genre.name|escapejs }}", "description": "دانلود آهنگ‌های ژانر {{ genre.name|escapejs }} در FarMusic", "url": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}" } </script>
+    FarMusic.
+{% endblock %}
+{% block canonical %}
+    <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+{% endblock %}
+{% block og_title %} دانلود آهنگ‌های {{ genre.name }} | FarMusic
+{% endblock %}
+{% block og_description %} مجموعه
+    آهنگ‌های ژانر {{ genre.name }}
+    همراه با پخش آنلاین و دانلود مستقیم در FarMusic {% endblock %}
+{% block extra_head %}
+    <script type="application/ld+json"> { "@context": "https://schema.org", "@type": "CollectionPage", "name": "آهنگ‌های ژانر {{ genre.name|escapejs }}", "description": "دانلود آهنگ‌های ژانر {{ genre.name|escapejs }} در FarMusic", "url": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}" }
+    </script>
 {% endblock %}
 
 {% block content %}
