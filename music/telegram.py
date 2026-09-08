@@ -28,36 +28,86 @@ def safe_filename(filename):
 
 
 def send_new_music_to_telegram(music):
+    print("🚀 send_new_music_to_telegram() CALLED")
+    print(f"🎵 Music ID: {music.id}")
+    print(f"🎵 Title: {music.title}")
+
     music_url = f"{settings.SITE_URL}/music/{music.id}/{music.slug_en}/"
 
-    caption = ("🎵 <b>آهنگ جدید منتشر شد</b>\n\n"f"🎼 {music.title}\n"
-               f"🎤 {music.artist.name if music.artist else 'ناشناس'}\n\n" f"🔗 <a href='{music_url}'>مشاهده و پخش آهنگ</a>")
+    caption = (
+        "🎵 <b>آهنگ جدید منتشر شد</b>\n\n"
+        f"🎼 {music.title}\n"
+        f"🎤 {music.artist.name if music.artist else 'ناشناس'}\n\n"
+        f"🔗 <a href='{music_url}'>مشاهده و پخش آهنگ</a>"
+    )
 
-    api_base = getattr(settings, "TELEGRAM_API_BASE", "https://api.telegram.org", )
+    api_base = getattr(
+        settings,
+        "TELEGRAM_API_BASE",
+        "https://api.telegram.org"
+    )
+
+    print("🌐 TELEGRAM_API_BASE:", api_base)
+
     files = None
     photo_file = None
 
-    if music.cover and hasattr(music.cover, "path"):
-        url = f"{api_base}/bot{settings.TELEGRAM_BOT_TOKEN}/sendPhoto"
-
-        data = {"chat_id": settings.TELEGRAM_CHAT_ID, "caption": caption, "parse_mode": "HTML",
-                "disable_web_page_preview": False, }
+    if music.cover:
+        print("🖼 Cover exists")
+        print("🖼 Cover name:", music.cover.name)
 
         try:
+            print("🖼 Cover path:", music.cover.path)
+
             photo_file = open(music.cover.path, "rb")
             files = {"photo": photo_file}
 
-        except Exception:
+            url = f"{api_base}/bot{settings.TELEGRAM_BOT_TOKEN}/sendPhoto"
+
+            data = {
+                "chat_id": settings.TELEGRAM_CHAT_ID,
+                "caption": caption,
+                "parse_mode": "HTML",
+            }
+
+            print("📸 Sending sendPhoto...")
+
+        except Exception as e:
+            print("⚠️ Cannot open cover:", repr(e))
+
             url = f"{api_base}/bot{settings.TELEGRAM_BOT_TOKEN}/sendMessage"
-            data = {"chat_id": settings.TELEGRAM_CHAT_ID, "text": caption, "parse_mode": "HTML", }
+
+            data = {
+                "chat_id": settings.TELEGRAM_CHAT_ID,
+                "text": caption,
+                "parse_mode": "HTML",
+                "disable_web_page_preview": False,
+            }
+
+            print("💬 Sending sendMessage instead...")
 
     else:
+        print("⚠️ No cover")
+
         url = f"{api_base}/bot{settings.TELEGRAM_BOT_TOKEN}/sendMessage"
-        data = {"chat_id": settings.TELEGRAM_CHAT_ID, "text": caption, "parse_mode": "HTML",
-                "disable_web_page_preview": False, }
+
+        data = {
+            "chat_id": settings.TELEGRAM_CHAT_ID,
+            "text": caption,
+            "parse_mode": "HTML",
+            "disable_web_page_preview": False,
+        }
+
+    print("📤 Telegram URL:", url)
+    print("📤 Chat ID:", settings.TELEGRAM_CHAT_ID)
 
     try:
-        response = requests.post(url, data=data, files=files, timeout=20, )
+        response = requests.post(
+            url,
+            data=data,
+            files=files,
+            timeout=20,
+        )
 
         print("📤 Telegram Send Status:", response.status_code)
         print("📤 Telegram Send Response:", response.text)
@@ -68,7 +118,6 @@ def send_new_music_to_telegram(music):
     finally:
         if photo_file:
             photo_file.close()
-
 
 def process_telegram_audio(audio_data):
     """دریافت فایل صوتی از تلگرام با پروکسی، استخراج اطلاعات، ذخیره در جنگو و آپلود به هاست دانلود"""
