@@ -41,83 +41,39 @@ def send_new_music_to_telegram(music):
         f"🔗 <a href='{music_url}'>مشاهده و پخش آهنگ</a>"
     )
 
-    api_base = getattr(
-        settings,
-        "TELEGRAM_API_BASE",
-        "https://api.telegram.org"
-    )
+    api_base = getattr(settings, "TELEGRAM_API_BASE", "https://api.telegram.org")
+    bot_token = settings.TELEGRAM_BOT_TOKEN
+    chat_id = settings.TELEGRAM_CHAT_ID
 
-    print("🌐 TELEGRAM_API_BASE:", api_base)
+    # اگر کاور روی FTP داریم، مستقیماً از URL آن استفاده کن
 
-    files = None
-    photo_file = None
-
-    if music.cover:
-        print("🖼 Cover exists")
-        print("🖼 Cover name:", music.cover.name)
-
-        try:
-            print("🖼 Cover path:", music.cover.path)
-
-            photo_file = open(music.cover.path, "rb")
-            files = {"photo": photo_file}
-
-            url = f"{api_base}/bot{settings.TELEGRAM_BOT_TOKEN}/sendPhoto"
-
-            data = {
-                "chat_id": settings.TELEGRAM_CHAT_ID,
-                "caption": caption,
-                "parse_mode": "HTML",
-            }
-
-            print("📸 Sending sendPhoto...")
-
-        except Exception as e:
-            print("⚠️ Cannot open cover:", repr(e))
-
-            url = f"{api_base}/bot{settings.TELEGRAM_BOT_TOKEN}/sendMessage"
-
-            data = {
-                "chat_id": settings.TELEGRAM_CHAT_ID,
-                "text": caption,
-                "parse_mode": "HTML",
-                "disable_web_page_preview": False,
-            }
-
-            print("💬 Sending sendMessage instead...")
+    if music.cover_url:
+        print("🖼 Cover URL:", music.cover_url)
+        url = f"{api_base}/bot{bot_token}/sendPhoto"
+        data = {"chat_id": chat_id, "photo": music.cover_url, "caption": caption, "parse_mode": "HTML", }
+        print("📸 Sending photo to Telegram...")
 
     else:
-        print("⚠️ No cover")
-
-        url = f"{api_base}/bot{settings.TELEGRAM_BOT_TOKEN}/sendMessage"
-
-        data = {
-            "chat_id": settings.TELEGRAM_CHAT_ID,
-            "text": caption,
-            "parse_mode": "HTML",
-            "disable_web_page_preview": False,
-        }
+        print("⚠️ No cover_url - sending text message")
+        url = f"{api_base}/bot{bot_token}/sendMessage"
+        data = {"chat_id": chat_id,"text": caption,"parse_mode": "HTML","disable_web_page_preview": False,}
 
     print("📤 Telegram URL:", url)
-    print("📤 Chat ID:", settings.TELEGRAM_CHAT_ID)
+    print("📤 Telegram Chat ID:", chat_id)
 
     try:
-        response = requests.post(
-            url,
-            data=data,
-            files=files,
-            timeout=20,
-        )
-
+        response = requests.post(url,data=data,timeout=30,)
         print("📤 Telegram Send Status:", response.status_code)
         print("📤 Telegram Send Response:", response.text)
+
+        if response.ok:
+            print("✅ Telegram channel post sent successfully.")
+        else:
+            print("❌ Telegram API returned an error.")
 
     except Exception as e:
         print("❌ Telegram Send Error:", repr(e))
 
-    finally:
-        if photo_file:
-            photo_file.close()
 
 def process_telegram_audio(audio_data):
     """دریافت فایل صوتی از تلگرام با پروکسی، استخراج اطلاعات، ذخیره در جنگو و آپلود به هاست دانلود"""
@@ -305,14 +261,23 @@ def process_telegram_audio(audio_data):
                 raise Exception("Local MP3 Missing")
 
             print(f"🚀 شروع انتقال فایل تلگرامی با شناسه {music.id} به هاست دانلود...")
+
             success = upload_to_ftp_and_clean(instance_id=music.id, local_file_path=local_file_path,
                                               remote_dir="public_html/tracks", )
 
             if not success:
                 raise Exception("Upload MP3 failed")
 
-        print(f"✅ آهنگ '{display_title}' با موفقیت پردازش و به هاست دانلود منتقل شد.")
-        return True
+            print(f"✅ آهنگ '{display_title}' با موفقیت پردازش و به هاست دانلود منتقل شد.")
+
+            # 📤 ارسال به کانال تلگرام
+            try:
+                send_new_music_to_telegram(music)
+                print("✅ ارسال به کانال تلگرام انجام شد.")
+            except Exception as e:
+                print("❌ خطا در ارسال به کانال تلگرام:", repr(e))
+
+            return True
 
     except Exception as e:
         print("❌ خطا در فرآیند پردازش و ذخیره فایل تلگرام:", e)
