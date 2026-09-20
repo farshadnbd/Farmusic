@@ -66,11 +66,7 @@ def bulk_upload(request):
             search_aliases_combined = ", ".join(artist_names)
 
             title = (metadata["title"] or mp3_file.name.replace(".mp3", ""))
-            if len(artist_names) > 1:
-                featured_artists_str = ", ".join(artist_names[1:])
-                display_title = f"{title} (Ft. {featured_artists_str})"
-            else:
-                display_title = title
+            display_title = title
 
             album_name = metadata.get("album")
 
