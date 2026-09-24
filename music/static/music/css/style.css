@@ -1411,3 +1411,58 @@ body {
         height: 26px !important;
     }
 }
+
+/* ─── اصلاح کامل پوزیشن و اندازه مینی‌پلیر در تمام نمایشگرها ─── */
+.mobile-player-fixed {
+    position: fixed !important;
+    bottom: 15px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: calc(100% - 30px) !important;
+    max-width: 450px !important;
+    z-index: 1050 !important;
+}
+
+/* ─── جلوگیری از اسکرول افقی ناخواسته در موبایل (Overflow Fix) ─── */
+html, body {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+}
+
+@media (max-width: 576px) {
+    /* اصلاح اسلایدر موبایل جهت جلوگیری از شکستن صفحه‌بندی */
+    .mobile-slider {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        padding: 5px 0 15px 0 !important;
+        margin-right: 0 !important;
+        margin-left: 0 !important;
+        gap: 10px !important;
+    }
+
+    .mobile-slider > [class*="col-"] {
+        flex: 0 0 70% !important; /* سایز استانداردی که کارت بعدی را هم نشان می‌دهد */
+        max-width: 70% !important;
+        scroll-snap-align: start;
+        padding-right: 5px !important;
+        padding-left: 5px !important;
+    }
+
+    /* پدینگ‌ها و فونت‌های ریسپانسیو */
+    .container {
+        padding-right: 12px !important;
+        padding-left: 12px !important;
+    }
+
+    /* دکمه پخش آنلاین روی کاور در موبایل */
+    .play-btn-card {
+        top: 50% !important;
+        left: 50% !important;
+        right: auto !important;
+        transform: translate(-50%, -50%) !important;
+        opacity: 1 !important;
+    }
+}
