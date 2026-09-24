@@ -123,16 +123,22 @@
             <nav>
                 <ul class="pagination justify-content-center">
                     {% if page_obj.has_previous %}
-                        <li class="page-item"><a class="page-link" href="?page=1">اول</a></li>
                         <li class="page-item"><a class="page-link"
-                                                 href="?page={{ page_obj.previous_page_number }}">قبلی</a></li>
+                                                 href="?sort={{ current_sort|default:'download' }}&page=1">اول</a></li>
+                        <li class="page-item"><a class="page-link"
+                                                 href="?sort={{ current_sort|default:'download' }}&page={{ page_obj.previous_page_number }}">قبلی</a>
+                        </li>
                     {% endif %}
+
                     <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+
                     {% if page_obj.has_next %}
-                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">بعدی</a>
+                        <li class="page-item"><a class="page-link"
+                                                 href="?sort={{ current_sort|default:'download' }}&page={{ page_obj.next_page_number }}">بعدی</a>
                         </li>
                         <li class="page-item"><a class="page-link"
-                                                 href="?page={{ page_obj.paginator.num_pages }}">آخر</a></li>
+                                                 href="?sort={{ current_sort|default:'download' }}&page={{ page_obj.paginator.num_pages }}">آخر</a>
+                        </li>
                     {% endif %}
                 </ul>
             </nav>
