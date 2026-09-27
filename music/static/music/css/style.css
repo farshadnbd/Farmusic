@@ -1411,3 +1411,6 @@ body {
         height: 26px !important;
     }
 }
+.navbar-brand{
+    color: #ffc107
+}
