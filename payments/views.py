@@ -27,7 +27,7 @@ def create_payment(request, plan_id):
         data = {
             'api': settings.BITPAY_API_KEY,
             'redirect': settings.BITPAY_CALLBACK_URL,
-            'amount': payment.amount,  # مبلغ به تومان
+            "amount": payment.amount * 10,  # تبدیل تومان به ریال
             'factorId': payment.id,
             'name': request.user.username,
             'email': request.user.email or '',
