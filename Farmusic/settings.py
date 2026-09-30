@@ -122,9 +122,9 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "farmusicbackups@gmail.com")
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "farshadnbd16@gmail.com")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "ylmocaelvifbwspb")
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "Farmusic <farmusicbackups@gmail.com>")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "Farmusic <farshadnbd16@gmail.com>")
 
 # =========================
 # Easy Thumbnails
@@ -149,3 +149,5 @@ FTP_USER = os.environ.get("FTP_USER", "farmusic")
 FTP_PASS = os.environ.get("FTP_PASS", "")  # این مقدار را در پنل لیارا ست می‌کنی
 DOWNLOAD_BASE_URL = "dl.farmusic.ir"
 TELEGRAM_API_BASE = "https://telegram.farmusic.ir"
+BITPAY_API_KEY = os.getenv("BITPAY_API_KEY", "874f7-e0174-81bca-b1868-b395ce431644bfaa3176d9c99f3c")
+BITPAY_CALLBACK_URL = f"{SITE_URL}/payments/bitpay/verify/"

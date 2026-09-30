@@ -23,13 +23,10 @@ def safe_filename(filename):
     name = re.sub(r"[^\w\s-]", "", name)
     name = re.sub(r"[\s_]+", "-", name)
     name = re.sub(r"-+", "-", name)
-
     return name.strip("-").lower() + ext
-
 
 def send_new_music_to_telegram(music):
     print("🚀 send_new_music_to_telegram() CALLED")
-    print(f"🎵 Music ID: {music.id}")
     print(f"🎵 Title: {music.title}")
 
     music_url = f"{settings.SITE_URL}/music/{music.id}/{music.slug_en}/"
@@ -46,13 +43,10 @@ def send_new_music_to_telegram(music):
     chat_id = settings.TELEGRAM_CHAT_ID
 
     # اگر کاور روی FTP داریم، مستقیماً از URL آن استفاده کن
-
     if music.cover_url:
         print("🖼 Cover URL:", music.cover_url)
         url = f"{api_base}/bot{bot_token}/sendPhoto"
         data = {"chat_id": chat_id, "photo": music.cover_url, "caption": caption, "parse_mode": "HTML", }
-        print("📸 Sending photo to Telegram...")
-
     else:
         print("⚠️ No cover_url - sending text message")
         url = f"{api_base}/bot{bot_token}/sendMessage"
