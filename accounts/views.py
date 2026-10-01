@@ -28,15 +28,14 @@ def register_view(request):
         form = RegisterForm(request.POST)
 
         if form.is_valid():
-            form.save()
-
-            return redirect('login')
+            user = form.save()
+            login(request, user)
+            return redirect('home')
 
     else:
         form = RegisterForm()
 
     return render(request, 'accounts/register.html', {'form': form})
-
 
 def login_view(request):
     if request.method == 'POST':

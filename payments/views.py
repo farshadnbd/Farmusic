@@ -20,7 +20,7 @@ def create_payment(request, plan_id):
     plan = get_object_or_404(SubscriptionPlan, id=plan_id)
     gateway = request.GET.get('gateway', 'zarinpal')  # دریافت نوع درگاه انتخابی
 
-    payment = Payment.objects.create(user=request.user,plan=plan,amount=plan.price,gateway=gateway)
+    payment = Payment.objects.create(user=request.user, plan=plan, amount=plan.price, gateway=gateway)
 
     # ------------------ درگاه بیت‌پی ------------------
     if gateway == 'bitpay':
@@ -66,7 +66,7 @@ def create_payment(request, plan_id):
         headers = {
             "accept": "application/json",
             "content-type": "application/json",
-            "Referer": "https://farmusic.ir"
+            "Referer": "https://farmusic.ir/",
         }
 
         try:
@@ -102,11 +102,7 @@ def verify_payment(request):
         return render(request, "payments/payment-failed.html")
 
     payment = get_object_or_404(Payment, authority=authority, user=request.user)
-    data = {
-        "merchant_id": settings.ZARINPAL_MERCHANT_ID,
-        "amount": payment.amount * 10,
-        "authority": authority,
-    }
+    data = {"merchant_id": settings.ZARINPAL_MERCHANT_ID, "amount": payment.amount * 10, "authority": authority, }
 
     response = requests.post(
         "https://api.zarinpal.com/pg/v4/payment/verify.json",
@@ -137,13 +133,7 @@ def verify_bitpay_payment(request):
 
     if not trans_id or not id_get:
         return render(request, "payments/payment-failed.html")
-
-    data = {
-        'api': settings.BITPAY_API_KEY,
-        'trans_id': trans_id,
-        'id_get': id_get,
-        'json': 1
-    }
+    data = {'api': settings.BITPAY_API_KEY, 'trans_id': trans_id, 'id_get': id_get, 'json': 1}
 
     try:
         response = requests.post('https://bitpay.ir/payment/gateway-result-second', data=data, timeout=15)
