@@ -62,10 +62,18 @@ def create_payment(request, plan_id):
             "description": f"خرید اشتراک {plan.title}",
         }
 
+        # 👈 اضافه کردن هدرهای ضروری برای شاپرک
+        headers = {
+            "accept": "application/json",
+            "content-type": "application/json",
+            "Referer": "https://farmusic.ir"
+        }
+
         try:
             response = requests.post(
                 "https://api.zarinpal.com/pg/v4/payment/request.json",
                 json=data,
+                headers=headers,  # 👈 ارسال هدرها
                 timeout=15
             )
             result = response.json()

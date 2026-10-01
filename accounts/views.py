@@ -14,20 +14,12 @@ def edit_profile(request):
     profile = request.user.profile
 
     if request.method == 'POST':
-
         form = ProfileForm(request.POST, request.FILES, instance=profile)
-
         if form.is_valid():
             form.save()
-
             return redirect('profile')
-
     else:
-
-        form = ProfileForm(
-            instance=profile
-        )
-
+        form = ProfileForm(instance=profile)
     return render(request, 'accounts/edit_profile.html', {'form': form})
 
 
@@ -64,6 +56,7 @@ def logout_view(request):
     logout(request)
     return redirect('home')
 
+
 def profile_view(request):
     subscription = None
     profile, created = Profile.objects.get_or_create(user=request.user)
@@ -83,26 +76,16 @@ def profile_view(request):
     # اما در دفعات بعدی تعداد صفر خواهد بود)
     notifications.update(is_read=True)
 
-    return render(
-        request,
-        'accounts/profile.html',
-        {'subscription': subscription, "profile": profile, "unread_notifications": unread_notifications}
-    )
+    return render(request, 'accounts/profile.html',
+                  {'subscription': subscription, "profile": profile, "unread_notifications": unread_notifications}
+                  )
 
 
 @login_required
 def followed_artists(request):
-    artists = Artist.objects.filter(
-        artistfollow__user=request.user
-    )
+    artists = Artist.objects.filter(artistfollow__user=request.user)
 
-    return render(
-        request,
-        'accounts/followed_artists.html',
-        {
-            'artists': artists
-        }
-    )
+    return render(request, 'accounts/followed_artists.html', {'artists': artists})
 
 
 @login_required
@@ -140,4 +123,4 @@ def delete_account(request):
         user.delete()
         return redirect('home')
 
-    return render(request,'accounts/delete_account.html')
+    return render(request, 'accounts/delete_account.html')
