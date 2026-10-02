@@ -14,6 +14,18 @@ from pathlib import Path
 import unicodedata
 
 
+def telegram_request_proxies():
+    proxy = getattr(settings, "TELEGRAM_PROXY", "").strip()
+
+    if not proxy:
+        return None
+
+    return {
+        "http": proxy,
+        "https": proxy,
+    }
+
+
 def safe_filename(filename):
     name = Path(filename).stem
     ext = Path(filename).suffix.lower()
@@ -24,6 +36,7 @@ def safe_filename(filename):
     name = re.sub(r"[\s_]+", "-", name)
     name = re.sub(r"-+", "-", name)
     return name.strip("-").lower() + ext
+
 
 def send_new_music_to_telegram(music):
     print("🚀 send_new_music_to_telegram() CALLED")
@@ -50,13 +63,13 @@ def send_new_music_to_telegram(music):
     else:
         print("⚠️ No cover_url - sending text message")
         url = f"{api_base}/bot{bot_token}/sendMessage"
-        data = {"chat_id": chat_id,"text": caption,"parse_mode": "HTML","disable_web_page_preview": False,}
+        data = {"chat_id": chat_id, "text": caption, "parse_mode": "HTML", "disable_web_page_preview": False, }
 
     print("📤 Telegram URL:", url)
     print("📤 Telegram Chat ID:", chat_id)
 
     try:
-        response = requests.post(url,data=data,timeout=30,)
+        response = requests.post(url, data=data, timeout=30, proxies=telegram_request_proxies(), )
         print("📤 Telegram Send Status:", response.status_code)
         print("📤 Telegram Send Response:", response.text)
 
@@ -95,7 +108,7 @@ def process_telegram_audio(audio_data):
 
         for attempt in range(5):
             try:
-                response = requests.get(get_file_url, timeout=15)
+                response = requests.get(get_file_url, timeout=15, proxies=telegram_request_proxies())
                 file_info_res = response.json()
 
                 if file_info_res.get("ok"):
@@ -118,7 +131,7 @@ def process_telegram_audio(audio_data):
 
         for attempt in range(5):
             try:
-                r = requests.get(download_url, timeout=45)
+                r = requests.get(download_url, timeout=45, proxies=telegram_request_proxies())
                 file_content = r.content
 
                 if file_content:

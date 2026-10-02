@@ -151,3 +151,4 @@ DOWNLOAD_BASE_URL = "dl.farmusic.ir"
 TELEGRAM_API_BASE = "https://telegram.farmusic.ir"
 BITPAY_API_KEY = os.getenv("BITPAY_API_KEY", "874f7-e0174-81bca-b1868-b395ce431644bfaa3176d9c99f3c")
 BITPAY_CALLBACK_URL = f"{SITE_URL}/payments/bitpay/verify/"
+TELEGRAM_PROXY = os.getenv("TELEGRAM_PROXY", "")
