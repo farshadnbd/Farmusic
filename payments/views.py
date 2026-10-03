@@ -1,5 +1,4 @@
 # payments/views.py
-
 from datetime import timedelta
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
@@ -68,7 +67,11 @@ def create_payment(request, plan_id):
             "content-type": "application/json",
             "Referer": "https://farmusic.ir/",
         }
-
+        print("SITE_URL:", settings.SITE_URL)
+        print("CALLBACK:", settings.ZARINPAL_CALLBACK_URL)
+        print("REFERER:", headers["Referer"])
+        print("MERCHANT:", settings.ZARINPAL_MERCHANT_ID)
+        print("====================================")
         try:
             response = requests.post(
                 "https://api.zarinpal.com/pg/v4/payment/request.json",

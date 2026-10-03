@@ -14,12 +14,31 @@
                             <p>مدت اعتبار: {{ plan.duration_days }} روز</p>
 
                             <div class="d-grid gap-2 mt-3">
-                                <a href="{% url 'create_payment' plan.id %}?gateway=zarinpal" class="btn btn-warning fw-bold">
-                                    پرداخت با زرین‌پال
-                                </a>
-                                <a href="{% url 'create_payment' plan.id %}?gateway=bitpay" class="btn btn-primary fw-bold">
-                                    پرداخت با بیت‌پی
-                                </a>
+                                {% if user.is_authenticated %}
+
+                                    <a href="{% url 'create_payment' plan.id %}?gateway=zarinpal"
+                                       class="btn btn-warning fw-bold">
+                                        پرداخت با زرین‌پال
+                                    </a>
+
+                                    <a href="{% url 'create_payment' plan.id %}?gateway=bitpay"
+                                       class="btn btn-primary fw-bold">
+                                        پرداخت با بیت‌پی
+                                    </a>
+
+                                {% else %}
+
+                                    <a href="{% url 'register' %}?next={% url 'create_payment' plan.id %}%3Fgateway%3Dzarinpal"
+                                       class="btn btn-warning fw-bold">
+                                        پرداخت با زرین‌پال
+                                    </a>
+
+                                    <a href="{% url 'register' %}?next={% url 'create_payment' plan.id %}%3Fgateway%3Dbitpay"
+                                       class="btn btn-primary fw-bold">
+                                        پرداخت با بیت‌پی
+                                    </a>
+
+                                {% endif %}
                             </div>
                         </div>
                     </div>

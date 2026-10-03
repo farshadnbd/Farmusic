@@ -24,18 +24,28 @@ def edit_profile(request):
 
 
 def register_view(request):
+    next_url = request.GET.get('next') or request.POST.get('next') or 'home'
+
     if request.method == 'POST':
         form = RegisterForm(request.POST)
 
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('home')
+
+            return redirect(next_url)
 
     else:
         form = RegisterForm()
 
-    return render(request, 'accounts/register.html', {'form': form})
+    return render(
+        request,
+        'accounts/register.html',
+        {
+            'form': form,
+            'next': next_url,
+        }
+    )
 
 def login_view(request):
     if request.method == 'POST':
