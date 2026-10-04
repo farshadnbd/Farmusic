@@ -23,8 +23,18 @@ def telegram_webhook(request):
         audio_data = message["audio"]
         print(f"🎵 New Telegram Audio: "f"{audio_data.get('title')} | "f"{audio_data.get('file_name')}")
 
+        # تعریف تابع پوششی جهت مدیریت خطا و بستن اتصال دیتابیس
+        def run_processing(data):
+            try:
+                process_telegram_audio(data)
+            except Exception as err:
+                print(f"❌ Error in background thread: {err}")
+            finally:
+                from django.db import connection
+                connection.close()  # بستن اتصال جهت جلوگیری از قفل شدن دیتابیس
+
         # اجرای پردازش در بک‌گراند
-        threading.Thread(target=process_telegram_audio, args=(audio_data,), daemon=True, ).start()
+        threading.Thread(target=run_processing, args=(audio_data,), daemon=True).start()
 
         # پاسخ فوری به تلگرام
         return JsonResponse({"status": "accepted"}, status=200)
