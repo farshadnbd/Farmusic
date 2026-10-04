@@ -5,7 +5,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from .telegram import process_telegram_audio
 
-
 @csrf_exempt
 @require_POST
 def telegram_webhook(request):
@@ -13,7 +12,16 @@ def telegram_webhook(request):
 
     try:
         payload = json.loads(request.body.decode("utf-8"))
+        update_id = payload.get("update_id")
+        print(f"🆔 Telegram update_id: {update_id}")
+
         message = payload.get("message") or payload.get("channel_post")
+
+        if message:
+            print(f"🆔 Telegram message_id: {message.get('message_id')}")
+            print(f"💬 Chat ID: {message.get('chat', {}).get('id')}")
+
+        print("📦 Update keys:", list(payload.keys()))
 
         if not message:
             return JsonResponse({"status": "no message"}, status=200)
@@ -22,7 +30,15 @@ def telegram_webhook(request):
             return JsonResponse({"status": "no audio"}, status=200)
 
         audio_data = message["audio"]
-        print(f"🎵 New Telegram Audio: "f"{audio_data.get('title')} | "f"{audio_data.get('file_name')}")
+
+        print(
+            f"🎵 New Telegram Audio: "
+            f"{audio_data.get('title')} | "
+            f"{audio_data.get('file_name')}"
+        )
+
+        print(f"🆔 Telegram file_id: {audio_data.get('file_id')}")
+        # print(f"🎵 New Telegram Audio: "f"{audio_data.get('title')} | "f"{audio_data.get('file_name')}")
 
         # اجرای پردازش در بک‌گراند
         threading.Thread(target=process_telegram_audio, args=(audio_data,), daemon=True, ).start()

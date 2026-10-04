@@ -19,12 +19,7 @@ def telegram_request_proxies():
 
     if not proxy:
         return None
-
-    return {
-        "http": proxy,
-        "https": proxy,
-    }
-
+    return {"http": proxy, "https": proxy, }
 
 def safe_filename(filename):
     name = Path(filename).stem
