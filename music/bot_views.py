@@ -12,7 +12,14 @@ def telegram_webhook(request):
 
     try:
         payload = json.loads(request.body.decode("utf-8"))
+
+        update_id = payload.get("update_id")
+        print(f"🆔 Telegram update_id: {update_id}")
+
         message = payload.get("message") or payload.get("channel_post")
+
+        if message:
+            print(f"🆔 Telegram message_id: {message.get('message_id')}")
 
         if not message:
             return JsonResponse({"status": "no message"}, status=200)
