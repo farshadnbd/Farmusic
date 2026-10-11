@@ -226,33 +226,50 @@ def process_telegram_audio(audio_data):
         cover = extract_cover(mp3_file)
 
         if cover:
-            music.cover.save(cover.name, cover, save=True)
-            local_cover = music.cover.path
-            # ---------- Crop + Compress ----------
-            image = Image.open(local_cover).convert("RGB")
-            image = ImageOps.fit(image, (400, 400), Image.Resampling.LANCZOS, )
-            image.save(local_cover, "JPEG", quality=85, optimize=True, )
+            # بررسی اینکه آیا این آلبوم قبلاً کاور دارد یا خیر
+            existing_cover_path = None
+            if album and album.cover:
+                # اگر آلبوم کاور محلی دارد، مسیر فایل آن را بردار
+                if album.cover.name and os.path.exists(album.cover.path):
+                    existing_cover_path = album.cover.path
 
-            # ---------- Upload FTP ----------
-            cover_url = upload_cover_to_ftp(local_cover)
+            if existing_cover_path:
+                # 🟢 اگر آلبوم از قبل کاور دارد، از همان فایل قبلی استفاده کن و فایل جدیدی نساز!
+                music.cover = album.cover
+                music.cover_url = album.cover_url
+                music.save(update_fields=["cover", "cover_url"])
+                print(f"♻️ استفاده از کاور تکرارشده‌ی آلبوم برای آهنگ: {music.title}")
+            else:
+                # 🔵 اگر اولین بار است یا آلبوم ندارد، کاور را پردازش و ذخیره کن
+                music.cover.save(cover.name, cover, save=True)
+                local_cover = music.cover.path
 
-            if cover_url:
-                music.cover_url = cover_url
-                music.save(update_fields=["cover_url"])
+                # ---------- Crop + Compress ----------
+                image = Image.open(local_cover).convert("RGB")
+                image = ImageOps.fit(image, (400, 400), Image.Resampling.LANCZOS)
+                image.save(local_cover, "JPEG", quality=85, optimize=True)
 
-                # فقط اگر آلبوم واقعاً چند آهنگی باشد
-                if album:
-                    album.cover_url = cover_url
-                    album.save(update_fields=["cover_url"])
+                # ---------- Upload FTP ----------
+                cover_url = upload_cover_to_ftp(local_cover)
+
+                if cover_url:
+                    music.cover_url = cover_url
+                    music.save(update_fields=["cover_url"])
+
+                    # اگر آهنگ متعلق به آلبوم است، کاور را روی خود آلبوم هم تنظیم کن
+                    if album:
+                        album.cover = music.cover
+                        album.cover_url = cover_url
+                        album.save(update_fields=["cover", "cover_url"])
 
             # ---------- حذف فایل از دیسک لیارا ----------
-            if os.path.exists(local_cover):
-                os.remove(local_cover)
-
-            if music.cover:
-                music.cover.delete(save=False)
-            if album and album.cover:
-                album.cover.delete(save=False)
+            # if os.path.exists(local_cover):
+            #     os.remove(local_cover)
+            #
+            # if music.cover:
+            #     music.cover.delete(save=False)
+            # if album and album.cover:
+            #     album.cover.delete(save=False)
 
         # ۱۱. ثبت شناسه فایل تلگرام
         TelegramFile.objects.create(file_id=file_id, music=music)
