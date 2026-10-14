@@ -82,7 +82,7 @@ class Music(models.Model):
     file = models.FileField(upload_to='musics/')
     # آدرس نهایی فایل روی هاست دانلود پس از انتقال موفق در اینجا ذخیره می‌شود
     audio_url = models.URLField(blank=True, null=True, max_length=500)
-
+    is_trending = models.BooleanField(default=False, verbose_name="🔥 آهنگ ترند (نمایش در صدر)")
     cover = models.ImageField(upload_to='covers/', blank=True, null=True)
     cover_url = models.URLField(blank=True, null=True, max_length=500)
     track_number = models.PositiveIntegerField(null=True, blank=True)

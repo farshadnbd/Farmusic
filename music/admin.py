@@ -4,6 +4,7 @@ from django.utils.safestring import mark_safe
 from accounts.models import Notification
 from .models import Music, Artist, Genre, Comment, Album, Playlist, ArtistFollow, CommentReport
 from django.urls import reverse
+
 # ثبت مدل‌های ساده
 admin.site.register(Comment)
 admin.site.register(Playlist)
@@ -76,12 +77,12 @@ class GenreAdmin(admin.ModelAdmin):
     search_fields = ['name']
 
 
-# ۴. ثبت ادمین Album
+# ۴. ثبت ادمین Album (با قابلیت جستجوی هنرمند)
 @admin.register(Album)
 class AlbumAdmin(admin.ModelAdmin):
     list_display = ['admin_cover', 'title', 'artist', 'release_date']
     search_fields = ['title', 'artist__name']
-    autocomplete_fields = ['artist']
+    autocomplete_fields = ['artist']  # 👈 امکان جستجوی نام هنرمند هنگام انتخاب آلبوم
     inlines = [MusicInline]
 
     def admin_cover(self, obj):
@@ -94,21 +95,27 @@ class AlbumAdmin(admin.ModelAdmin):
     admin_cover.short_description = 'کاور'
 
 
-# ۵. ثبت ادمین اصلی Music (اضافه شدن خواننده به جدول نمایش)
+# ۵. ثبت ادمین اصلی Music
 @admin.register(Music)
 class MusicAdmin(admin.ModelAdmin):
-    # فیلد artist (خواننده اصلی) به لیست نمایش اضافه شد
-    list_display = ['admin_cover', 'title', 'artist', 'genre', 'search_aliases', 'is_vip', 'download_count',
-                    'created_at', 'row_actions']
+    # اضافه شدن آمار بازدید و دانلود به جدول لیست برای ویرایش مستقیم
+    list_display = ['admin_cover', 'title', 'artist', 'album', 'genre', 'views_count', 'download_count', 'is_vip',
+                    'is_trending', 'row_actions']
 
-    # فیلد title به خاطر تداخل دکمه‌های لینک ادمین، از list_editable حذف شد تا خطایی رخ ندهد
-    list_editable = ['genre', 'search_aliases', 'is_vip']
+    # امکان تغییر مستقیم این فیلدها از صفحه اول
+    list_editable = ['views_count', 'download_count', 'is_vip', 'is_trending']
     list_display_links = ['admin_cover', 'title']
 
     list_filter = ['is_vip', 'genre', 'created_at']
-    search_fields = ['title', 'artist__name', 'album__title', 'search_aliases']
+
+    # 👈 امکان سرچ پیشرفته بین آلبوم، خواننده اصلی، نام آهنگ و نام‌های جایگزین
+    search_fields = ['title', 'artist__name', 'artists__name', 'album__title', 'search_aliases']
+
+    # 👈 فیلدهای جستجوی سریع در حالت انتخاب (Autocomplete) برای آلبوم و خوانندگان
+    autocomplete_fields = ['artist', 'artists', 'album', 'genre']
+
+    # مرتب‌سازی پیش‌فرض (جدیدترین‌ها در ابتدا، اما با قابلیت سفارشی‌سازی)
     ordering = ['-created_at']
-    autocomplete_fields = ['artist', 'genre', 'album']
 
     def row_actions(self, obj):
         return format_html(
@@ -133,7 +140,7 @@ class MusicAdmin(admin.ModelAdmin):
         extra_context['extracss'] = mark_safe(
             '<style>'
             '#changelist .results { overflow-x: auto !important; display: block !important; width: 100% !important; padding-bottom: 12px !important; }'
-            '#changelist .results table { width: 100% !important; min-width: 1300px !important; }'
+            '#changelist .results table { width: 100% !important; min-width: 1400px !important; }'
             '#changelist .results::-webkit-scrollbar { height: 9px !important; }'
             '#changelist .results::-webkit-scrollbar-track { background: #f1f1f1 !important; border-radius: 5px !important; }'
             '#changelist .results::-webkit-scrollbar-thumb { background: #79aec8 !important; border-radius: 5px !important; }'

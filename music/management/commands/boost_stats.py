@@ -13,7 +13,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         min_v = options['min_views']
         max_v = options['max_views']
-
         musics = Music.objects.all()  # [cite: 3]
         count = musics.count()
 

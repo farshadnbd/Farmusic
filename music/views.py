@@ -17,7 +17,7 @@ import json
 
 
 def home(request):
-    musics = Music.objects.select_related('artist', 'genre', 'album').order_by('-created_at')
+    musics = Music.objects.select_related('artist', 'genre', 'album').order_by('-is_trending', '-created_at')
     music_count = Music.objects.count()
     artist_count = Artist.objects.count()
     genre_count = Genre.objects.count()
