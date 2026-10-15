@@ -82,7 +82,7 @@ class GenreAdmin(admin.ModelAdmin):
 class AlbumAdmin(admin.ModelAdmin):
     list_display = ['admin_cover', 'title', 'artist', 'release_date']
     search_fields = ['title', 'artist__name']
-    autocomplete_fields = ['artist']  # 👈 امکان جستجوی نام هنرمند هنگام انتخاب آلبوم
+    autocomplete_fields = ['artist']
     inlines = [MusicInline]
 
     def admin_cover(self, obj):
@@ -98,23 +98,18 @@ class AlbumAdmin(admin.ModelAdmin):
 # ۵. ثبت ادمین اصلی Music
 @admin.register(Music)
 class MusicAdmin(admin.ModelAdmin):
-    # اضافه شدن آمار بازدید و دانلود به جدول لیست برای ویرایش مستقیم
-    list_display = ['admin_cover', 'title', 'artist', 'album', 'genre', 'views_count', 'download_count', 'is_vip',
+    # 🟢 اضافه شدن search_aliases به لیست نمایش
+    list_display = ['admin_cover', 'title', 'search_aliases', 'artist', 'album', 'genre', 'views_count', 'download_count', 'is_vip',
                     'is_trending', 'row_actions']
 
-    # امکان تغییر مستقیم این فیلدها از صفحه اول
-    list_editable = ['views_count', 'download_count', 'is_vip', 'is_trending']
+    # 🟢 اضافه شدن search_aliases به قابلیت ویرایش مستقیم از صفحه اول
+    list_editable = ['search_aliases', 'genre', 'views_count', 'download_count', 'is_vip', 'is_trending']
     list_display_links = ['admin_cover', 'title']
 
     list_filter = ['is_vip', 'genre', 'created_at']
 
-    # 👈 امکان سرچ پیشرفته بین آلبوم، خواننده اصلی، نام آهنگ و نام‌های جایگزین
     search_fields = ['title', 'artist__name', 'artists__name', 'album__title', 'search_aliases']
-
-    # 👈 فیلدهای جستجوی سریع در حالت انتخاب (Autocomplete) برای آلبوم و خوانندگان
     autocomplete_fields = ['artist', 'artists', 'album', 'genre']
-
-    # مرتب‌سازی پیش‌فرض (جدیدترین‌ها در ابتدا، اما با قابلیت سفارشی‌سازی)
     ordering = ['-created_at']
 
     def row_actions(self, obj):
@@ -137,10 +132,11 @@ class MusicAdmin(admin.ModelAdmin):
 
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
+        # 🟢 کمی عرض جدول را بیشتر کردیم تا فیلد جدید جا شود
         extra_context['extracss'] = mark_safe(
             '<style>'
             '#changelist .results { overflow-x: auto !important; display: block !important; width: 100% !important; padding-bottom: 12px !important; }'
-            '#changelist .results table { width: 100% !important; min-width: 1400px !important; }'
+            '#changelist .results table { width: 100% !important; min-width: 1550px !important; }'
             '#changelist .results::-webkit-scrollbar { height: 9px !important; }'
             '#changelist .results::-webkit-scrollbar-track { background: #f1f1f1 !important; border-radius: 5px !important; }'
             '#changelist .results::-webkit-scrollbar-thumb { background: #79aec8 !important; border-radius: 5px !important; }'

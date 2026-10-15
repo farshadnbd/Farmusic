@@ -1,5 +1,6 @@
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
+from django.core.management import call_command
 from .models import Music, Album
 from .ftp import delete_file_from_ftp
 
@@ -24,6 +25,14 @@ def delete_music_files(sender, instance, **kwargs):
 
 @receiver(post_delete, sender=Album)
 def delete_album_files(sender, instance, **kwargs):
-    # عمداً خالی است
-    # چون کاور آلبوم همان کاور موزیک‌هاست و نباید هنگام حذف آلبوم پاک شود.
-    pass
+    """
+    هنگام حذف آلبوم، فایل‌ها پاک نمی‌شوند اما برای اینکه
+    اگر کاور آهنگ‌های زیرمجموعه دچار مشکل شد به طور خودکار اصلاح شود،
+    دستور ریستور کاورها صدا زده می‌شود.
+    """
+    try:
+        print(f"🗑️ آلبوم '{instance.title}' حذف شد. در حال بررسی و بازسازی خودکار کاورها...")
+        call_command('restore_liara_covers')
+        print("✅ بازسازی خودکار کاورها با موفقیت انجام شد.")
+    except Exception as e:
+        print(f"❌ خطا در اجرای خودکار دستور بازیابی کاور: {e}")
