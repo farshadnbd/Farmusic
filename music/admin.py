@@ -80,7 +80,9 @@ class GenreAdmin(admin.ModelAdmin):
 # ۴. ثبت ادمین Album (با قابلیت جستجوی هنرمند)
 @admin.register(Album)
 class AlbumAdmin(admin.ModelAdmin):
-    list_display = ['admin_cover', 'title', 'artist', 'release_date']
+    list_display = ['admin_cover', 'title', 'artist', 'release_date', 'is_trending']
+    list_editable = ['is_trending']
+    list_display_links = ['admin_cover', 'title']
     search_fields = ['title', 'artist__name']
     autocomplete_fields = ['artist']
     inlines = [MusicInline]

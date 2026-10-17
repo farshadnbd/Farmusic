@@ -25,7 +25,7 @@ def home(request):
     paginator = Paginator(musics, 12)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    latest_albums = Album.objects.order_by('-created_at')[:8]
+    latest_albums = Album.objects.select_related('artist').order_by('-is_trending', '-created_at')[:8]
     user_has_vip = False
     # بررسی اینکه کاربر در صفحه دوم به بعد پجینیشن است یا خیر
     is_paginated_page = bool(page_number)
@@ -715,30 +715,44 @@ def import_music(request):
         if data.get("genre"):
             genre, _ = Genre.objects.get_or_create(name=data["genre"])
 
+        # 🟢 بخش مدیریت هوشمند آلبوم و کاور اشتراکی
         album = None
         if data.get("album"):
-            album, _ = Album.objects.get_or_create(title=data["album"], artist=artist)
+            album_title = data["album"].strip()
 
+            # بررسی اینکه آیا آلبوم از قبل برای این هنرمند وجود دارد یا خیر
+            album, created = Album.objects.get_or_create(
+                title=album_title,
+                artist=artist,
+                defaults={
+                    'cover_url': data.get("cover_url") if data.get("cover_url") else None
+                }
+            )
+
+            # اگر آلبوم از قبل وجود داشته اما کاور نداشته، و الان کاور جدیدی آمده، آن را ست کن
+            if not created and not album.cover_url and data.get("cover_url"):
+                album.cover_url = data["cover_url"]
+                album.save(update_fields=["cover_url"])
+
+        # ثبت موزیک جدید
         music = Music.objects.create(
             title=data["title"],
             artist=artist,
             album=album,
             genre=genre,
             audio_url=data["audio_url"],
-            cover_url=data.get("cover_url"),
+            # اگر آلبوم کاور دارد، برای موزیک هم می‌توان از همان کاور استفاده کرد یا کاور اختصاصی داد
+            cover_url=data.get("cover_url") or (album.cover_url if album else None),
             search_aliases=data.get("search_aliases", ""),
             file="placeholder.mp3",
             lyrics=data.get("lyrics") or "",
             year=data.get("year"),
             track_number=data.get("track_number"),
         )
+
         for artist_name in data.get("artists", []):
             artist_obj, _ = Artist.objects.get_or_create(name=artist_name.strip())
             music.artists.add(artist_obj)
-
-        if album and data.get("cover_url") and not album.cover_url:
-            album.cover_url = data["cover_url"]
-            album.save(update_fields=["cover_url"])
 
         return JsonResponse({"ok": True, "music_id": music.id})
 

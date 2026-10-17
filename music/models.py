@@ -53,7 +53,8 @@ class Album(models.Model):
     search_aliases = models.CharField(max_length=100, blank=True, default="")
     artist = models.ForeignKey(Artist, on_delete=models.CASCADE)
     cover = models.ImageField(upload_to='albums/', blank=True, null=True)
-    cover_url = models.URLField(max_length=500, blank=True, null=True)  # 👈 جدید
+    cover_url = models.URLField(max_length=500, blank=True, null=True)
+    is_trending = models.BooleanField(default=False, verbose_name="🔥 آلبوم ترند")
     release_date = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -66,7 +67,7 @@ class Album(models.Model):
         return f"{self.title} - {self.artist.name}"
 
     def delete(self, *args, **kwargs):
-        # هیچ فایل کاوری حذف نشود
+        self.music_set.update(album=None)
         super().delete(*args, **kwargs)
 
 
