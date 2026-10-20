@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from music.models import Music, Album
-from music.utils import (upload_to_ftp_and_clean,upload_cover_to_ftp,remote_file_exists,)
+from music.utils import (upload_to_ftp_and_clean, upload_cover_to_ftp, remote_file_exists)
 import os
 
 
@@ -18,7 +18,6 @@ class Command(BaseCommand):
         self.stdout.write(self.style.WARNING("Checking musics..."))
 
         for music in Music.objects.all():
-
             try:
 
                 # ================= AUDIO =================
@@ -33,13 +32,13 @@ class Command(BaseCommand):
                             self.stdout.write(
                                 f"Uploading audio -> {music.title}")
 
-                            if upload_to_ftp_and_clean(music.id,local_audio,):
+                            if upload_to_ftp_and_clean(music.id, local_audio):
                                 uploaded_music += 1
                             else:
                                 errors += 1
                                 continue
 
-                        # اگر روی هاست وجود دارد، فایل محلی را حذف کن
+                        # اگر روی هاست وجود دارد، فایل محلی صوتی را حذف کن (فقط برای صوت)
                         if remote_file_exists(music.audio_url):
 
                             if os.path.exists(local_audio):
@@ -48,7 +47,7 @@ class Command(BaseCommand):
 
                             music.file.delete(save=False)
 
-                # ================= COVER =================
+                # ================= COVER (فقط آپلود، بدون حذف) =================
 
                 if music.cover:
                     local_cover = music.cover.path
@@ -62,18 +61,11 @@ class Command(BaseCommand):
                                 music.cover_url = cover_url
                                 music.save(update_fields=["cover_url"])
                                 uploaded_cover += 1
-
                             else:
                                 errors += 1
                                 continue
+                        # بخش حذف کاور به درخواست شما کاملاً حذف شد تا کاورها دست‌نخورده بمانند
 
-                        if remote_file_exists(music.cover_url):
-
-                            if os.path.exists(local_cover):
-                                os.remove(local_cover)
-                                deleted_local += 1
-
-                            music.cover.delete(save=False)
                 skipped += 1
             except Exception as e:
                 errors += 1
@@ -93,13 +85,8 @@ class Command(BaseCommand):
                             if cover_url:
                                 album.cover_url = cover_url
                                 album.save(update_fields=["cover_url"])
-
-                        if remote_file_exists(album.cover_url):
-                            if os.path.exists(local_cover):
-                                os.remove(local_cover)
-                                deleted_local += 1
-
-                            album.cover.delete(save=False)
+                                uploaded_cover += 1
+                        # بخش حذف کاور آلبوم نیز حذف شد تا فایلی پاک نشود
             except Exception as e:
                 errors += 1
                 self.stdout.write(self.style.ERROR(str(e)))
