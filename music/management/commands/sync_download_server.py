@@ -1,100 +1,89 @@
 from django.core.management.base import BaseCommand
-from music.models import Music, Album
-from music.utils import (upload_to_ftp_and_clean, upload_cover_to_ftp, remote_file_exists)
+from music.models import Music
+from music.utils import upload_to_ftp_and_clean, remote_file_exists
 import os
 
 
 class Command(BaseCommand):
-    help = "Sync local media with download server"
+    help = "Sync audio files with download server only"
 
     def handle(self, *args, **kwargs):
-
-        uploaded_music = 0
-        uploaded_cover = 0
+        uploaded = 0
         deleted_local = 0
         skipped = 0
         errors = 0
 
-        self.stdout.write(self.style.WARNING("Checking musics..."))
+        self.stdout.write(self.style.WARNING(
+            "Checking audio files only..."
+        ))
 
-        for music in Music.objects.all():
+        for music in Music.objects.exclude(file="").iterator(chunk_size=200):
             try:
+                if not music.file:
+                    skipped += 1
+                    continue
 
-                # ================= AUDIO =================
+                local_audio = music.file.path
+                audio_url = music.audio_url
 
-                if music.file:
-                    local_audio = music.file.path
+                if not os.path.isfile(local_audio):
+                    self.stdout.write(
+                        f"Local file missing: {music.title}"
+                    )
+                    skipped += 1
+                    continue
 
-                    if os.path.exists(local_audio):
-                        # اگر فایل روی هاست وجود ندارد، دوباره آپلود کن
-                        if not remote_file_exists(music.audio_url):
+                if not audio_url:
+                    self.stdout.write(
+                        self.style.ERROR(
+                            f"Audio URL missing: {music.title}"
+                        )
+                    )
+                    errors += 1
+                    continue
 
-                            self.stdout.write(
-                                f"Uploading audio -> {music.title}")
+                # فقط یک بار بررسی می‌کنیم فایل روی هاست وجود دارد یا نه
+                if remote_file_exists(audio_url):
+                    # فایل روی هاست وجود دارد؛ نسخه محلی را حذف می‌کنیم
+                    os.remove(local_audio)
+                    music.file = ""
+                    music.save(update_fields=["file"])
 
-                            if upload_to_ftp_and_clean(music.id, local_audio):
-                                uploaded_music += 1
-                            else:
-                                errors += 1
-                                continue
+                    deleted_local += 1
+                    continue
 
-                        # اگر روی هاست وجود دارد، فایل محلی صوتی را حذف کن (فقط برای صوت)
-                        if remote_file_exists(music.audio_url):
+                self.stdout.write(f"Uploading audio: {music.title}")
 
-                            if os.path.exists(local_audio):
-                                os.remove(local_audio)
-                                deleted_local += 1
+                # این تابع طبق پیاده‌سازی فعلی پروژه فراخوانی می‌شود.
+                # قبل از حذف فایل، موفقیت آپلود باید تأیید شده باشد.
+                if upload_to_ftp_and_clean(music.id, local_audio):
+                    # اگر تابع فایل محلی را خودش حذف نکرده باشد
+                    if os.path.isfile(local_audio):
+                        os.remove(local_audio)
 
-                            music.file.delete(save=False)
+                    music.file = ""
+                    music.save(update_fields=["file"])
 
-                # ================= COVER (فقط آپلود، بدون حذف) =================
+                    uploaded += 1
+                else:
+                    errors += 1
+                    self.stdout.write(
+                        self.style.ERROR(
+                            f"Upload failed: {music.title}"
+                        )
+                    )
 
-                if music.cover:
-                    local_cover = music.cover.path
-
-                    if os.path.exists(local_cover):
-                        if not remote_file_exists(music.cover_url):
-                            self.stdout.write(f"Uploading cover -> {music.title}")
-                            cover_url = upload_cover_to_ftp(local_cover)
-
-                            if cover_url:
-                                music.cover_url = cover_url
-                                music.save(update_fields=["cover_url"])
-                                uploaded_cover += 1
-                            else:
-                                errors += 1
-                                continue
-                        # بخش حذف کاور به درخواست شما کاملاً حذف شد تا کاورها دست‌نخورده بمانند
-
-                skipped += 1
             except Exception as e:
                 errors += 1
-                self.stdout.write(self.style.ERROR(str(e)))
-
-        self.stdout.write(self.style.WARNING("Checking albums..."))
-
-        for album in Album.objects.all():
-            try:
-                if album.cover:
-                    local_cover = album.cover.path
-                    if os.path.exists(local_cover):
-                        if not remote_file_exists(album.cover_url):
-                            self.stdout.write(f"Uploading album cover -> {album.title}")
-                            cover_url = upload_cover_to_ftp(local_cover)
-
-                            if cover_url:
-                                album.cover_url = cover_url
-                                album.save(update_fields=["cover_url"])
-                                uploaded_cover += 1
-                        # بخش حذف کاور آلبوم نیز حذف شد تا فایلی پاک نشود
-            except Exception as e:
-                errors += 1
-                self.stdout.write(self.style.ERROR(str(e)))
+                self.stdout.write(
+                    self.style.ERROR(
+                        f"{music.title}: {e}"
+                    )
+                )
 
         self.stdout.write("")
         self.stdout.write(self.style.SUCCESS("Finished"))
-        self.stdout.write(f"Uploaded audios : {uploaded_music}")
-        self.stdout.write(f"Uploaded covers : {uploaded_cover}")
+        self.stdout.write(f"Uploaded audios : {uploaded}")
         self.stdout.write(f"Deleted locals  : {deleted_local}")
-        self.stdout.write(f"Checked         : {skipped}")
+        self.stdout.write(f"Skipped         : {skipped}")
         self.stdout.write(f"Errors          : {errors}")
