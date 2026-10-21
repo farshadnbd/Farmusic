@@ -27,9 +27,6 @@ class Command(BaseCommand):
                 audio_url = music.audio_url
 
                 if not os.path.isfile(local_audio):
-                    self.stdout.write(
-                        f"Local file missing: {music.title}"
-                    )
                     skipped += 1
                     continue
 
