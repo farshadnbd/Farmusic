@@ -7,8 +7,8 @@ class Command(BaseCommand):
     help = 'افزایش متناسب و رندوم تعداد بازدید و دانلود آهنگ‌ها'
 
     def add_arguments(self, parser):
-        parser.add_argument('--min-views', type=int, default=50, help='حداقل بازدید اضافه‌شونده')
-        parser.add_argument('--max-views', type=int, default=10000, help='حداکثر بازدید اضافه‌شونده')
+        parser.add_argument('--min-views', type=int, default=5, help='حداقل بازدید اضافه‌شونده')
+        parser.add_argument('--max-views', type=int, default=25, help='حداکثر بازدید اضافه‌شونده')
 
     def handle(self, *args, **options):
         min_v = options['min_views']
@@ -23,7 +23,7 @@ class Command(BaseCommand):
             rand_views = random.randint(min_v, max_v)
 
             # ۲. تعیین تعداد دانلود متناسب با بازدید (بین ۳۰٪ تا ۶۰٪ تعداد بازدیدها)
-            download_ratio = random.uniform(0.6, 0.9)
+            download_ratio = random.uniform(0.2, 0.9)
             rand_downloads = int(rand_views * download_ratio)
 
             music.views_count += rand_views  # [cite: 3]
