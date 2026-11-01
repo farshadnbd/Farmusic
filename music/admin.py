@@ -101,11 +101,13 @@ class AlbumAdmin(admin.ModelAdmin):
 @admin.register(Music)
 class MusicAdmin(admin.ModelAdmin):
     # 🟢 اضافه شدن search_aliases به لیست نمایش
-    list_display = ['admin_cover', 'title', 'search_aliases', 'artist', 'album', 'genre', 'views_count', 'download_count', 'is_vip',
+    list_display = ['admin_cover', 'title', 'search_aliases', 'artist', 'album', 'genre', 'views_count',
+                    'download_count', 'is_vip',
                     'is_trending', 'row_actions']
 
     # 🟢 اضافه شدن search_aliases به قابلیت ویرایش مستقیم از صفحه اول
-    list_editable = ['search_aliases', 'genre', 'views_count', 'download_count', 'is_vip', 'is_trending']
+    list_editable = ['search_aliases' 'artist', 'album', 'genre', 'views_count', 'download_count', 'is_vip',
+                     'is_trending']
     list_display_links = ['admin_cover', 'title']
 
     list_filter = ['is_vip', 'genre', 'created_at']
